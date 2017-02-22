@@ -30,7 +30,7 @@ minecraft {
     makeObfSourceJar = false
     //useDepAts = true
 
-    replaceIn "Deflection.java"
+    replaceIn "ModUtil.java"
     replace "@VERSION@", project.version.toString()
 }
 
