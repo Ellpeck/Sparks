@@ -1,0 +1,19 @@
+[
+{
+  "modid": "deflection",
+  "name": "Deflection",
+  "description": "Mirrors move power, basically",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "http://github.com/Ellpeck/Deflection",
+  "updateUrl": "",
+  "authorList": [ "Ellpeck" ],
+  "credits": "Author: Ellpeck",
+  "logoFile": "",
+  "screenshots": [
+  ],
+  "parent":"",
+  "dependencies": [
+  ]
+}
+]
