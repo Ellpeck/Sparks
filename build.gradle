@@ -1,0 +1,110 @@
+buildscript {
+    repositories {
+        jcenter()
+        maven {
+            name = "forge"
+            url = "http://files.minecraftforge.net/maven"
+        }
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.2-SNAPSHOT'
+    }
+}
+
+apply plugin: 'net.minecraftforge.gradle.forge'
+apply plugin: 'idea'
+
+version = "1.11.2-r1"
+group = "de.ellpeck.deflection"
+archivesBaseName = "Deflection"
+
+if(hasProperty('buildnumber')){
+    version = "${version}-${this.properties['buildnumber']}"
+}
+
+minecraft {
+    version = "1.11.2-13.20.0.2236"
+    runDir = "idea"
+
+    mappings = "snapshot_20161126"
+    makeObfSourceJar = false
+    //useDepAts = true
+
+    replaceIn "Deflection.java"
+    replace "@VERSION@", project.version.toString()
+}
+
+repositories {
+    maven {
+        url "http://dvs1.progwml6.com/files/maven"
+    }
+}
+
+dependencies {
+    deobfCompile "mezz.jei:jei_1.11:4.1.1.206"
+}
+
+processResources {
+    inputs.property "version", project.version
+    inputs.property "mcversion", project.minecraft.version
+
+    from(sourceSets.main.resources.srcDirs) {
+        include 'mcmod.info'
+
+        expand 'version': project.version, 'mcversion': project.minecraft.version
+    }
+
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'mcmod.info'
+    }
+}
+
+jar {
+
+}
+
+task deobfJar(type: Jar) {
+    from sourceSets.main.output
+    from sourceSets.main.java
+    classifier = 'dev'
+}
+
+task apiJar(type: Jar) {
+    from sourceSets.main.output
+    from sourceSets.main.java
+    classifier = 'api'
+    include 'de/ellpeck/deflection/api/**'
+}
+
+javadoc {
+    include 'de/ellpeck/deflection/api/**'
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    from 'build/docs/javadoc'
+    classifier 'javadoc'
+}
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.java
+    classifier = 'sources'
+}
+
+apply plugin: 'maven-publish'
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifact jar
+            artifact apiJar
+            artifact javadocJar
+            artifact sourcesJar
+            artifact deobfJar
+        }
+    }
+    repositories {
+        maven {
+            url "file:///srv/nginx/maven"
+        }
+    }
+}
