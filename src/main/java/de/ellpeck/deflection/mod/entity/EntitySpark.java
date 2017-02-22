@@ -1,19 +1,34 @@
 package de.ellpeck.deflection.mod.entity;
 
-import de.ellpeck.deflection.Deflection;
 import de.ellpeck.deflection.api.iface.IDeflector;
 import de.ellpeck.deflection.api.iface.ISpark;
+import de.ellpeck.deflection.mod.Deflection;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 public class EntitySpark extends Entity implements ISpark{
 
+    protected EnumFacing facing;
+    protected double motion;
+
     public EntitySpark(World world){
         super(world);
+    }
+
+    public EntitySpark(World world, EnumFacing facing, double motion){
+        this(world);
+        this.facing = facing;
+        this.motion = motion;
+    }
+
+    public EntitySpark(World world, double x, double y, double z, EnumFacing facing, double motion){
+        this(world, facing, motion);
+        this.setPosition(x, y, z);
     }
 
     @Override
@@ -71,24 +86,27 @@ public class EntitySpark extends Entity implements ISpark{
     }
 
     @Override
-    public double getMotionX(){
-        return this.motionX;
+    public double getMotion(){
+        return this.motion;
     }
 
     @Override
-    public double getMotionY(){
-        return this.motionY;
+    public EnumFacing getFacing(){
+        return this.facing;
     }
 
     @Override
-    public double getMotionZ(){
-        return this.motionZ;
+    public void setPos(double x, double y, double z){
+        this.setPosition(x, y, z);
     }
 
     @Override
-    public void setMotion(double x, double y, double z){
-        this.motionX = x;
-        this.motionY = y;
-        this.motionZ = z;
+    public void setMotion(double motion){
+        this.motion = motion;
+    }
+
+    @Override
+    public void setFacing(EnumFacing facing){
+        this.facing = facing;
     }
 }

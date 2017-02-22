@@ -1,7 +1,10 @@
-package de.ellpeck.deflection;
+package de.ellpeck.deflection.mod;
 
+import de.ellpeck.deflection.mod.block.BlockRegistry;
 import de.ellpeck.deflection.mod.entity.EntityManager;
+import de.ellpeck.deflection.mod.item.ItemRegistry;
 import de.ellpeck.deflection.mod.proxy.IProxy;
+import de.ellpeck.deflection.mod.reg.ModRegistry;
 import de.ellpeck.deflection.mod.util.ModUtil;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
@@ -20,20 +23,25 @@ public class Deflection{
     @SidedProxy(clientSide = ModUtil.CLIENT_PROXY, serverSide = ModUtil.SERVER_PROXY)
     public static IProxy proxy;
 
-    @EventHandler
+    @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event){
-        EntityManager.preInit();
+        BlockRegistry.preInit();
+        ItemRegistry.preInit();
+        ModRegistry.preInit(event);
 
+        EntityManager.preInit();
         proxy.preInit(event);
     }
 
-    @EventHandler
+    @Mod.EventHandler
     public void init(FMLInitializationEvent event){
+        ModRegistry.init(event);
         proxy.init(event);
     }
 
     @EventHandler
     public void postInit(FMLPostInitializationEvent event){
+        ModRegistry.postInit(event);
         proxy.postInit(event);
     }
 }

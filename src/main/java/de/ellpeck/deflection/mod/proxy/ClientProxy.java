@@ -1,14 +1,22 @@
 package de.ellpeck.deflection.mod.proxy;
 
 import de.ellpeck.deflection.mod.entity.EntityManager;
-import de.ellpeck.deflection.mod.entity.EntitySpark;
-import de.ellpeck.deflection.mod.entity.render.RenderSpark;
 import de.ellpeck.deflection.mod.event.ClientEvents;
 import de.ellpeck.deflection.mod.particle.ParticleHandler;
 import de.ellpeck.deflection.mod.particle.ParticleMagic;
+import de.ellpeck.deflection.mod.reg.IColorProvidingBlock;
+import de.ellpeck.deflection.mod.reg.IColorProvidingItem;
+import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.block.model.ModelResourceLocation;
+import net.minecraft.client.renderer.color.IItemColor;
+import net.minecraft.client.renderer.color.ItemColors;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
+import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
@@ -30,6 +38,31 @@ public class ClientProxy implements IProxy{
     @Override
     public void postInit(FMLPostInitializationEvent event){
 
+    }
+
+    @Override
+    public void registerRenderer(ItemStack stack, ResourceLocation location, String variant){
+        ModelLoader.setCustomModelResourceLocation(stack.getItem(), stack.getItemDamage(), new ModelResourceLocation(location, variant));
+    }
+
+    @Override
+    public void addColorProvidingItem(IColorProvidingItem item){
+        ItemColors colors = Minecraft.getMinecraft().getItemColors();
+        IItemColor color = item.getItemColor();
+
+        if(item instanceof Item){
+            colors.registerItemColorHandler(color, (Item)item);
+        }
+        else if(item instanceof Block){
+            colors.registerItemColorHandler(color, (Block)item);
+        }
+    }
+
+    @Override
+    public void addColorProvidingBlock(IColorProvidingBlock block){
+        if(block instanceof Block){
+            Minecraft.getMinecraft().getBlockColors().registerBlockColorHandler(block.getBlockColor(), (Block)block);
+        }
     }
 
     @Override

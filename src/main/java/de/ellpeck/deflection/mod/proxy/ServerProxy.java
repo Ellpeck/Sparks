@@ -1,5 +1,9 @@
 package de.ellpeck.deflection.mod.proxy;
 
+import de.ellpeck.deflection.mod.reg.IColorProvidingBlock;
+import de.ellpeck.deflection.mod.reg.IColorProvidingItem;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
@@ -19,6 +23,21 @@ public class ServerProxy implements IProxy{
 
     @Override
     public void postInit(FMLPostInitializationEvent event){
+
+    }
+
+    @Override
+    public void registerRenderer(ItemStack stack, ResourceLocation location, String variant){
+
+    }
+
+    @Override
+    public void addColorProvidingItem(IColorProvidingItem item){
+
+    }
+
+    @Override
+    public void addColorProvidingBlock(IColorProvidingBlock block){
 
     }
 

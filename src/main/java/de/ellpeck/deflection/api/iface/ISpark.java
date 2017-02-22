@@ -1,5 +1,7 @@
 package de.ellpeck.deflection.api.iface;
 
+import net.minecraft.util.EnumFacing;
+
 public interface ISpark{
 
     double getX();
@@ -8,13 +10,14 @@ public interface ISpark{
 
     double getZ();
 
-    double getMotionX();
+    double getMotion();
 
-    double getMotionY();
+    EnumFacing getFacing();
 
-    double getMotionZ();
+    void setPos(double x, double y, double z);
 
-    void setPosition(double x, double y, double z);
+    void setMotion(double motion);
 
-    void setMotion(double x, double y, double z);
+    void setFacing(EnumFacing facing);
+
 }
