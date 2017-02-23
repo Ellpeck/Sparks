@@ -4,6 +4,7 @@ import de.ellpeck.deflection.api.iface.ISpark;
 import de.ellpeck.deflection.api.iface.ISparkInteractor;
 import de.ellpeck.deflection.mod.packet.PacketHandler;
 import de.ellpeck.deflection.mod.packet.PacketParticleExplosion;
+import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.PropertyEnum;
 import net.minecraft.block.state.BlockStateContainer;
@@ -13,10 +14,14 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.IStringSerializable;
+import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class BlockMirror extends BlockBase implements ISparkInteractor{
 
@@ -82,30 +87,26 @@ public class BlockMirror extends BlockBase implements ISparkInteractor{
 
     @Override
     public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer, EnumHand hand){
-        return this.getDefaultState().withProperty(TYPE, MirrorType.fromStandingFacing(EnumFacing.getDirectionFromEntityLiving(pos, placer)));
+        return this.getDefaultState().withProperty(TYPE, MirrorType.fromStandingFacing(placer.getHorizontalFacing().getOpposite(), facing == EnumFacing.DOWN));
     }
 
     @Override
     public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ){
         if(!world.isRemote){
-            MirrorType[] types = MirrorType.values();
+            MirrorType currType = state.getValue(TYPE);
+            List<MirrorType> types = MirrorType.getTypesForFace(facing);
 
-            int currIndex = state.getValue(TYPE).ordinal();
-
-            if(player.isSneaking()){
-                currIndex--;
-                if(currIndex < 0){
-                    currIndex = types.length-1;
-                }
-            }
-            else{
-                currIndex++;
-                if(currIndex >= types.length){
-                    currIndex = 0;
-                }
+            int index = types.indexOf(currType)+1;
+            if(index >= types.size()){
+                index = 0;
             }
 
-            world.setBlockState(pos, state.withProperty(TYPE, types[currIndex]));
+            MirrorType nextType = types.get(index);
+            IBlockState newState = state.withProperty(TYPE, nextType);
+
+            world.setBlockState(pos, newState);
+            SoundType type = this.getSoundType(newState, world, pos, player);
+            world.playSound(null, pos, type.getPlaceSound(), SoundCategory.BLOCKS, (type.getVolume()+1.0F)/2.0F, type.getPitch()*0.8F);
         }
         return true;
     }
@@ -140,20 +141,16 @@ public class BlockMirror extends BlockBase implements ISparkInteractor{
             this.isOnCeiling = isOnCeiling;
         }
 
-        public static MirrorType fromStandingFacing(EnumFacing facing){
+        public static MirrorType fromStandingFacing(EnumFacing facing, boolean onCeiling){
             switch(facing){
                 case NORTH:
-                    return NORTH_UP;
+                    return onCeiling ? NORTH_DOWN : NORTH_UP;
                 case EAST:
-                    return EAST_UP;
+                    return onCeiling ? EAST_DOWN : EAST_UP;
                 case SOUTH:
-                    return SOUTH_UP;
-                case WEST:
-                    return WEST_UP;
-                case UP:
-                    return SOUTH_WEST;
+                    return onCeiling ? SOUTH_DOWN : SOUTH_UP;
                 default:
-                    return SOUTH_WEST;
+                    return onCeiling ? WEST_DOWN : WEST_UP;
             }
         }
 
@@ -167,6 +164,18 @@ public class BlockMirror extends BlockBase implements ISparkInteractor{
             else{
                 return null;
             }
+        }
+
+        public static List<MirrorType> getTypesForFace(EnumFacing facing){
+            List<MirrorType> possible = new ArrayList<MirrorType>();
+
+            for(MirrorType type : values()){
+                if(type.in == facing || type.out == facing){
+                    possible.add(type);
+                }
+            }
+
+            return possible;
         }
 
         @Override
