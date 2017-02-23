@@ -20,7 +20,7 @@ public class TileSparkInitiator extends TileBase implements ITickable{
                 double z = this.pos.getZ()+facing.getFrontOffsetZ()+0.5;
 
                 EntitySpark spark = new EntitySpark(this.world, x, y, z, facing, 0.1);
-                spark.setColor(0xD8461A);
+                spark.setColor(0x97B4FF);
                 this.world.spawnEntity(spark);
             }
         }

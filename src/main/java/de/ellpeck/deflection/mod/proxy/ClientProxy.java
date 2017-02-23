@@ -70,4 +70,9 @@ public class ClientProxy implements IProxy{
         ParticleMagic particle = new ParticleMagic(world, posX, posY, posZ, motionX, motionY, motionZ, color, scale, maxAge, gravity, collision);
         ParticleHandler.spawnParticle(particle, posX, posY, posZ, 32);
     }
+
+    @Override
+    public void scheduleTask(Runnable runnable){
+        Minecraft.getMinecraft().addScheduledTask(runnable);
+    }
 }

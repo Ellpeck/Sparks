@@ -2,6 +2,8 @@ package de.ellpeck.deflection.mod.block;
 
 import de.ellpeck.deflection.api.iface.ISpark;
 import de.ellpeck.deflection.api.iface.ISparkInteractor;
+import de.ellpeck.deflection.mod.packet.PacketHandler;
+import de.ellpeck.deflection.mod.packet.PacketParticleExplosion;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.PropertyEnum;
 import net.minecraft.block.state.BlockStateContainer;
@@ -46,6 +48,9 @@ public class BlockMirror extends BlockBase implements ISparkInteractor{
 
             if(direction != null){
                 spark.setFacing(direction);
+
+                PacketParticleExplosion packet = new PacketParticleExplosion(x, y, z, spark.getColor(), 30, 0.01, 1F, false);
+                PacketHandler.sendToAllAround(world, pos, packet);
             }
         }
     }

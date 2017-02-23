@@ -3,6 +3,7 @@ package de.ellpeck.deflection.mod;
 import de.ellpeck.deflection.mod.block.BlockRegistry;
 import de.ellpeck.deflection.mod.entity.EntityManager;
 import de.ellpeck.deflection.mod.item.ItemRegistry;
+import de.ellpeck.deflection.mod.packet.PacketHandler;
 import de.ellpeck.deflection.mod.proxy.IProxy;
 import de.ellpeck.deflection.mod.reg.ModRegistry;
 import de.ellpeck.deflection.mod.util.ModUtil;
@@ -29,6 +30,7 @@ public class Deflection{
         ItemRegistry.preInit();
         ModRegistry.preInit(event);
 
+        PacketHandler.preInit();
         EntityManager.preInit();
         proxy.preInit(event);
     }
