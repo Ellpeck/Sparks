@@ -90,8 +90,6 @@ public final class ModRegistry{
 
     public static void init(FMLInitializationEvent event){
         for(IModItem item : ALL_ITEMS){
-            item.onInit(event);
-
             if(item instanceof IColorProvidingBlock){
                 Deflection.proxy.addColorProvidingBlock((IColorProvidingBlock)item);
             }
@@ -99,6 +97,8 @@ public final class ModRegistry{
             if(item instanceof IColorProvidingItem){
                 Deflection.proxy.addColorProvidingItem((IColorProvidingItem)item);
             }
+
+            item.onInit(event);
         }
     }
 

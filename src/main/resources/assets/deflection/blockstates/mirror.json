@@ -1,0 +1,29 @@
+{
+  "forge_marker": 1,
+  "defaults": {
+    "model": "deflection:mirror",
+    "textures": {
+      "0": "deflection:blocks/mirror",
+      "particle": "#0"
+    },
+    "transform": "forge:default-block"
+  },
+  "variants": {
+    "normal": [{}],
+    "inventory": [{}],
+    "type": {
+      "north_east": { "y": 180, "model": "deflection:mirror_horizontal" },
+      "south_east": { "y": 270, "model": "deflection:mirror_horizontal" },
+      "north_west": { "y": 90, "model": "deflection:mirror_horizontal" },
+      "south_west": { "model": "deflection:mirror_horizontal" },
+      "north_up": { "y": 180 },
+      "north_down": { "x": 180 },
+      "east_up": { "y": 270 },
+      "east_down": { "x": 180, "y": 90 },
+      "south_up": {},
+      "south_down": { "x": 180, "y": 180 },
+      "west_up": { "y": 90 },
+      "west_down": { "x": 180, "y": 270 }
+    }
+  }
+}

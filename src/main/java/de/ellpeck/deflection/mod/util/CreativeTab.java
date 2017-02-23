@@ -5,7 +5,7 @@ import net.minecraft.item.ItemStack;
 
 public class CreativeTab extends CreativeTabs{
 
-    public static CreativeTab INSTANCE = new CreativeTab();
+    public static final CreativeTab INSTANCE = new CreativeTab();
 
     public CreativeTab(){
         super(ModUtil.MOD_ID);

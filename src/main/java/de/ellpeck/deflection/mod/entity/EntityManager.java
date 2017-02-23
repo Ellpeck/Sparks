@@ -2,6 +2,7 @@ package de.ellpeck.deflection.mod.entity;
 
 import de.ellpeck.deflection.mod.Deflection;
 import de.ellpeck.deflection.mod.entity.render.RenderSpark;
+import de.ellpeck.deflection.mod.entity.spark.EntitySpark;
 import de.ellpeck.deflection.mod.util.ModUtil;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;

@@ -1,6 +1,6 @@
 package de.ellpeck.deflection.mod.entity.render;
 
-import de.ellpeck.deflection.mod.entity.EntitySpark;
+import de.ellpeck.deflection.mod.entity.spark.EntitySpark;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.texture.TextureMap;

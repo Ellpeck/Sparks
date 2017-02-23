@@ -20,4 +20,7 @@ public interface ISpark{
 
     void setFacing(EnumFacing facing);
 
+    void setColor(int color);
+
+    int getColor();
 }

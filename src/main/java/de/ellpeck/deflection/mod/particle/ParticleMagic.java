@@ -3,7 +3,9 @@ package de.ellpeck.deflection.mod.particle;
 import de.ellpeck.deflection.mod.util.ModUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.Particle;
+import net.minecraft.client.renderer.VertexBuffer;
 import net.minecraft.client.renderer.texture.TextureMap;
+import net.minecraft.entity.Entity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
@@ -18,7 +20,7 @@ public class ParticleMagic extends Particle{
 
     public ParticleMagic(World world, double posX, double posY, double posZ, double motionX, double motionY, double motionZ, int color, float scale, int maxAge, float gravity, boolean collision){
         super(world, posX, posY, posZ);
-        this.desiredScale = scale*2;
+        this.desiredScale = scale;
         this.particleMaxAge = maxAge;
         this.canCollide = collision;
         this.particleGravity = gravity;
@@ -41,14 +43,8 @@ public class ParticleMagic extends Particle{
         super.onUpdate();
 
         float lifeRatio = (float)this.particleAge/(float)this.particleMaxAge;
-        if(lifeRatio > 0.5F){
-            this.particleAlpha = 1F-lifeRatio;
-            this.particleScale = this.desiredScale-(this.desiredScale*lifeRatio);
-        }
-        else{
-            this.particleAlpha = lifeRatio;
-            this.particleScale = this.desiredScale*lifeRatio;
-        }
+        this.particleAlpha = 0.75F-(lifeRatio*0.75F);
+        this.particleScale = this.desiredScale-(this.desiredScale*lifeRatio);
     }
 
     @Override
