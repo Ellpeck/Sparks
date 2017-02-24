@@ -19,7 +19,7 @@ import java.util.List;
 @SideOnly(Side.CLIENT)
 public final class ParticleHandler{
 
-    public static final List<Particle> PARTICLES = new ArrayList<Particle>();
+    private static final List<Particle> PARTICLES = new ArrayList<Particle>();
 
     public static void spawnParticle(Particle particle, double x, double y, double z, int range){
         if(Minecraft.getMinecraft().player.getDistanceSq(x, y, z) <= range*range){
@@ -107,5 +107,9 @@ public final class ParticleHandler{
 
             GlStateManager.popMatrix();
         }
+    }
+
+    public static int getParticleAmount(){
+        return PARTICLES.size();
     }
 }

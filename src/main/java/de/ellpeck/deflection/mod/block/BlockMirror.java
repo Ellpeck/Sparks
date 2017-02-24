@@ -55,7 +55,7 @@ public class BlockMirror extends BlockBase implements ISparkInteractor{
                 spark.setFacing(direction);
                 spark.setLastInteractor(pos);
 
-                PacketParticleExplosion packet = new PacketParticleExplosion(x, y, z, spark.getColor(), 30, 0.01, 1F, false);
+                PacketParticleExplosion packet = new PacketParticleExplosion(x, y, z, spark.getColor(), 20, 0.01, 1.5F, false);
                 PacketHandler.sendToAllAround(world, pos, packet);
             }
             return true;
@@ -95,23 +95,28 @@ public class BlockMirror extends BlockBase implements ISparkInteractor{
 
     @Override
     public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ){
-        if(!world.isRemote){
-            MirrorType currType = state.getValue(TYPE);
-            List<MirrorType> types = MirrorType.getTypesForFace(facing);
+        if(player.isSneaking()){
+            if(!world.isRemote){
+                MirrorType currType = state.getValue(TYPE);
+                List<MirrorType> types = MirrorType.getTypesForFace(facing);
 
-            int index = types.indexOf(currType)+1;
-            if(index >= types.size()){
-                index = 0;
+                int index = types.indexOf(currType)+1;
+                if(index >= types.size()){
+                    index = 0;
+                }
+
+                MirrorType nextType = types.get(index);
+                IBlockState newState = state.withProperty(TYPE, nextType);
+
+                world.setBlockState(pos, newState);
+                SoundType type = this.getSoundType(newState, world, pos, player);
+                world.playSound(null, pos, type.getPlaceSound(), SoundCategory.BLOCKS, (type.getVolume()+1.0F)/2.0F, type.getPitch()*0.8F);
             }
-
-            MirrorType nextType = types.get(index);
-            IBlockState newState = state.withProperty(TYPE, nextType);
-
-            world.setBlockState(pos, newState);
-            SoundType type = this.getSoundType(newState, world, pos, player);
-            world.playSound(null, pos, type.getPlaceSound(), SoundCategory.BLOCKS, (type.getVolume()+1.0F)/2.0F, type.getPitch()*0.8F);
+            return true;
         }
-        return true;
+        else{
+            return false;
+        }
     }
 
     private enum MirrorType implements IStringSerializable{

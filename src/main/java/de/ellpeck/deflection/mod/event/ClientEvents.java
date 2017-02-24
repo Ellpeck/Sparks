@@ -26,7 +26,7 @@ public class ClientEvents{
             String prefix = TextFormatting.GREEN+"["+ModUtil.NAME+"]"+TextFormatting.RESET+" ";
 
             left.add("");
-            left.add(prefix+"PartScrn: "+ParticleHandler.PARTICLES.size());
+            left.add(prefix+"PartScrn: "+ParticleHandler.getParticleAmount());
         }
     }
 

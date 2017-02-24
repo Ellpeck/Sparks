@@ -11,7 +11,7 @@ public class TileSparkInitiator extends TileBase implements ITickable{
     @Override
     public void update(){
         if(!this.world.isRemote){
-            if(this.world.getTotalWorldTime()%40 == 0){
+            if(this.world.getTotalWorldTime()%60 == 0){
                 IBlockState state = this.world.getBlockState(this.pos);
                 EnumFacing facing = state.getValue(BlockSparkInitiator.FACING);
 
