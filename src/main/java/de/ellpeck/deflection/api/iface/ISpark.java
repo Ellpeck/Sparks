@@ -1,5 +1,6 @@
 package de.ellpeck.deflection.api.iface;
 
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 
@@ -28,4 +29,6 @@ public interface ISpark{
     BlockPos getLastInteractor();
 
     void setLastInteractor(BlockPos pos);
+
+    boolean split(ISparkInteractor splitter, BlockPos pos, IBlockState state, EnumFacing firstDir, EnumFacing secondDir);
 }

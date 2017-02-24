@@ -100,12 +100,11 @@ public class EntitySpark extends Entity implements ISpark{
             if(!(block instanceof ISparkInteractor) || !((ISparkInteractor)block).interact(this.world, pos, state, this)){
                 List<AxisAlignedBB> list = new ArrayList<AxisAlignedBB>();
                 state.addCollisionBoxToList(this.world, pos, this.getEntityBoundingBox(), list, this, false);
+
                 if(!list.isEmpty()){
                     this.kill();
+                    return;
                 }
-            }
-            else{
-                this.setLastInteractor(pos);
             }
 
             if(this.posY >= this.world.getHeight()+64){
@@ -175,5 +174,19 @@ public class EntitySpark extends Entity implements ISpark{
     @Override
     public void setLastInteractor(BlockPos pos){
         this.lastInteractor = pos;
+    }
+
+    @Override
+    public boolean split(ISparkInteractor splitter, BlockPos pos, IBlockState state, EnumFacing firstDir, EnumFacing secondDir){
+        for(int i = 0; i < 2; i++){
+            EntitySpark spark = new EntitySpark(this.world, this.posX, this.posY, this.posZ, i == 0 ? firstDir : secondDir, this.motion);
+            spark.maxLifetime = (this.maxLifetime-this.currLifetime)/2;
+            spark.setColor(this.getColor());
+            spark.setLastInteractor(pos);
+            this.world.spawnEntity(spark);
+        }
+        this.kill();
+
+        return true;
     }
 }

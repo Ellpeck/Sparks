@@ -53,6 +53,7 @@ public class BlockMirror extends BlockBase implements ISparkInteractor{
         if(direction != null){
             if(x >= pos.getX()+0.45 && x <= pos.getX()+0.55 && y >= pos.getY()+0.45 && y <= pos.getY()+0.55 && z >= pos.getZ()+0.45 && z <= pos.getZ()+0.55){
                 spark.setFacing(direction);
+                spark.setLastInteractor(pos);
 
                 PacketParticleExplosion packet = new PacketParticleExplosion(x, y, z, spark.getColor(), 30, 0.01, 1F, false);
                 PacketHandler.sendToAllAround(world, pos, packet);
