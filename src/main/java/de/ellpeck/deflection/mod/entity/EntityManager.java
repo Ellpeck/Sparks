@@ -13,7 +13,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 public final class EntityManager{
 
     public static void preInit(){
-        EntityRegistry.registerModEntity(new ResourceLocation(ModUtil.MOD_ID, "spark"), EntitySpark.class, "spark", 0, Deflection.instance, 64, 1, false);
+        EntityRegistry.registerModEntity(EntitySpark.class, "spark", 0, Deflection.instance, 64, 1, false);
     }
 
     @SideOnly(Side.CLIENT)
