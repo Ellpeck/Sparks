@@ -42,22 +42,24 @@ public class BlockMirror extends BlockBase implements ISparkInteractor{
     }
 
     @Override
-    public void interact(World world, BlockPos pos, IBlockState state, ISpark spark){
+    public boolean interact(World world, BlockPos pos, IBlockState state, ISpark spark){
+        EnumFacing facing = spark.getFacing();
         double x = spark.getX();
         double y = spark.getY();
         double z = spark.getZ();
 
-        if(x >= pos.getX()+0.45 && x <= pos.getX()+0.55 && y >= pos.getY()+0.45 && y <= pos.getY()+0.55 && z >= pos.getZ()+0.45 && z <= pos.getZ()+0.55){
-            MirrorType type = state.getValue(TYPE);
-            EnumFacing direction = type.getDeflectionDirection(spark.getFacing().getOpposite());
-
-            if(direction != null){
+        MirrorType type = state.getValue(TYPE);
+        EnumFacing direction = type.getDeflectionDirection(facing.getOpposite());
+        if(direction != null){
+            if(x >= pos.getX()+0.45 && x <= pos.getX()+0.55 && y >= pos.getY()+0.45 && y <= pos.getY()+0.55 && z >= pos.getZ()+0.45 && z <= pos.getZ()+0.55){
                 spark.setFacing(direction);
 
                 PacketParticleExplosion packet = new PacketParticleExplosion(x, y, z, spark.getColor(), 30, 0.01, 1F, false);
                 PacketHandler.sendToAllAround(world, pos, packet);
             }
+            return true;
         }
+        return pos.equals(spark.getLastInteractor());
     }
 
     @Override

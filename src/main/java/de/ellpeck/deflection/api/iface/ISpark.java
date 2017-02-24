@@ -1,6 +1,7 @@
 package de.ellpeck.deflection.api.iface;
 
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.BlockPos;
 
 public interface ISpark{
 
@@ -23,4 +24,8 @@ public interface ISpark{
     void setColor(int color);
 
     int getColor();
+
+    BlockPos getLastInteractor();
+
+    void setLastInteractor(BlockPos pos);
 }

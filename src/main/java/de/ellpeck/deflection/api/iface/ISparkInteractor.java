@@ -6,6 +6,6 @@ import net.minecraft.world.World;
 
 public interface ISparkInteractor{
 
-    void interact(World world, BlockPos pos, IBlockState state, ISpark spark);
+    boolean interact(World world, BlockPos pos, IBlockState state, ISpark spark);
 
 }

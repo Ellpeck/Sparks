@@ -28,6 +28,8 @@ public class EntitySpark extends Entity implements ISpark{
     protected int currLifetime;
     protected int maxLifetime = 800;
 
+    protected BlockPos lastInteractor = BlockPos.ORIGIN;
+
     public EntitySpark(World world){
         super(world);
     }
@@ -57,6 +59,8 @@ public class EntitySpark extends Entity implements ISpark{
 
         this.maxLifetime = compound.getInteger("MaxLifetime");
         this.currLifetime = compound.getInteger("CurrLifetime");
+
+        this.lastInteractor = BlockPos.fromLong(compound.getLong("LastInteractor"));
     }
 
     @Override
@@ -68,6 +72,8 @@ public class EntitySpark extends Entity implements ISpark{
 
         compound.setInteger("MaxLifetime", this.maxLifetime);
         compound.setInteger("CurrLifetime", this.currLifetime);
+
+        compound.setLong("LastInteractor", this.lastInteractor.toLong());
     }
 
     @Override
@@ -91,15 +97,15 @@ public class EntitySpark extends Entity implements ISpark{
             IBlockState state = this.world.getBlockState(pos);
             Block block = state.getBlock();
 
-            if(block instanceof ISparkInteractor){
-                ((ISparkInteractor)block).interact(this.world, pos, state, this);
-            }
-            else{
+            if(!(block instanceof ISparkInteractor) || !((ISparkInteractor)block).interact(this.world, pos, state, this)){
                 List<AxisAlignedBB> list = new ArrayList<AxisAlignedBB>();
                 state.addCollisionBoxToList(this.world, pos, this.getEntityBoundingBox(), list, this, false);
                 if(!list.isEmpty()){
                     this.kill();
                 }
+            }
+            else{
+                this.setLastInteractor(pos);
             }
 
             if(this.posY >= this.world.getHeight()+64){
@@ -159,5 +165,15 @@ public class EntitySpark extends Entity implements ISpark{
     @Override
     public int getColor(){
         return this.dataManager.get(COLOR);
+    }
+
+    @Override
+    public BlockPos getLastInteractor(){
+        return this.lastInteractor;
+    }
+
+    @Override
+    public void setLastInteractor(BlockPos pos){
+        this.lastInteractor = pos;
     }
 }
