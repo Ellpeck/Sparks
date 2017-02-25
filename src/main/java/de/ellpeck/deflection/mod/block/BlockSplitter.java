@@ -2,6 +2,7 @@ package de.ellpeck.deflection.mod.block;
 
 import de.ellpeck.deflection.api.iface.ISpark;
 import de.ellpeck.deflection.api.iface.ISparkInteractor;
+import de.ellpeck.deflection.api.iface.ITravellingSpark;
 import de.ellpeck.deflection.mod.packet.PacketHandler;
 import de.ellpeck.deflection.mod.packet.PacketParticleExplosion;
 import net.minecraft.block.material.Material;
@@ -31,31 +32,33 @@ public class BlockSplitter extends BlockBase implements ISparkInteractor{
 
     @Override
     public boolean interact(World world, BlockPos pos, IBlockState state, ISpark spark){
-        EnumFacing facing = spark.getFacing();
+        if(spark instanceof ITravellingSpark){
+            ITravellingSpark travelling = (ITravellingSpark)spark;
 
-        double x = spark.getX();
-        double y = spark.getY();
-        double z = spark.getZ();
+            EnumFacing facing = travelling.getFacing();
 
-        if(facing.getAxis().isHorizontal()){
-            if(!pos.equals(spark.getLastInteractor())){
-                if(x >= pos.getX()+0.45 && x <= pos.getX()+0.55 && y >= pos.getY()+0.45 && y <= pos.getY()+0.55 && z >= pos.getZ()+0.45 && z <= pos.getZ()+0.55){
-                    if(spark.split(this, pos, state, facing.rotateY(), facing.rotateYCCW())){
-                        PacketParticleExplosion packet = new PacketParticleExplosion(x, y, z, spark.getColor(), 15, 0.02, 2.5F, false);
-                        PacketHandler.sendToAllAround(world, pos, packet);
+            double x = travelling.getX();
+            double y = travelling.getY();
+            double z = travelling.getZ();
 
-                        return true;
-                    }
-                    else{
-                        return false;
+            if(facing.getAxis().isHorizontal()){
+                if(!pos.equals(travelling.getLastInteractor())){
+                    if(x >= pos.getX()+0.45 && x <= pos.getX()+0.55 && y >= pos.getY()+0.45 && y <= pos.getY()+0.55 && z >= pos.getZ()+0.45 && z <= pos.getZ()+0.55){
+                        if(travelling.split(this, pos, state, facing.rotateY(), facing.rotateYCCW())){
+                            PacketParticleExplosion packet = new PacketParticleExplosion(x, y, z, travelling.getColor(), 15, 0.02, 2.5F, false);
+                            PacketHandler.sendToAllAround(world, pos, packet);
+
+                            return true;
+                        }
+                        else{
+                            return false;
+                        }
                     }
                 }
+                return true;
             }
-            return true;
         }
-        else{
-            return false;
-        }
+        return false;
     }
 
     @Override

@@ -2,6 +2,7 @@ package de.ellpeck.deflection.mod.block;
 
 import de.ellpeck.deflection.api.iface.ISpark;
 import de.ellpeck.deflection.api.iface.ISparkInteractor;
+import de.ellpeck.deflection.api.iface.ITravellingSpark;
 import de.ellpeck.deflection.mod.packet.PacketHandler;
 import de.ellpeck.deflection.mod.packet.PacketParticleExplosion;
 import net.minecraft.block.SoundType;
@@ -21,7 +22,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,24 +45,30 @@ public class BlockMirror extends BlockBase implements ISparkInteractor{
 
     @Override
     public boolean interact(World world, BlockPos pos, IBlockState state, ISpark spark){
-        EnumFacing facing = spark.getFacing();
-        double x = spark.getX();
-        double y = spark.getY();
-        double z = spark.getZ();
+        if(spark instanceof ITravellingSpark){
+            ITravellingSpark travelling = (ITravellingSpark)spark;
+            EnumFacing facing = travelling.getFacing();
+            double x = travelling.getX();
+            double y = travelling.getY();
+            double z = travelling.getZ();
 
-        MirrorType type = state.getValue(TYPE);
-        EnumFacing direction = type.getDeflectionDirection(facing.getOpposite());
-        if(direction != null){
-            if(x >= pos.getX()+0.45 && x <= pos.getX()+0.55 && y >= pos.getY()+0.45 && y <= pos.getY()+0.55 && z >= pos.getZ()+0.45 && z <= pos.getZ()+0.55){
-                spark.setFacing(direction);
-                spark.setLastInteractor(pos);
+            MirrorType type = state.getValue(TYPE);
+            EnumFacing direction = type.getDeflectionDirection(facing.getOpposite());
+            if(direction != null){
+                if(x >= pos.getX()+0.45 && x <= pos.getX()+0.55 && y >= pos.getY()+0.45 && y <= pos.getY()+0.55 && z >= pos.getZ()+0.45 && z <= pos.getZ()+0.55){
+                    travelling.setFacing(direction);
+                    travelling.setLastInteractor(pos);
 
-                PacketParticleExplosion packet = new PacketParticleExplosion(x, y, z, spark.getColor(), 20, 0.01, 1.5F, false);
-                PacketHandler.sendToAllAround(world, pos, packet);
+                    PacketParticleExplosion packet = new PacketParticleExplosion(x, y, z, travelling.getColor(), 20, 0.01, 1.5F, false);
+                    PacketHandler.sendToAllAround(world, pos, packet);
+                }
+                return true;
             }
-            return true;
+            return pos.equals(travelling.getLastInteractor());
         }
-        return pos.equals(spark.getLastInteractor());
+        else{
+            return false;
+        }
     }
 
     @Override
