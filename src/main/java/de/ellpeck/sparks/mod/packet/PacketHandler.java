@@ -25,7 +25,11 @@ public final class PacketHandler{
     }
 
     public static void sendToAllAround(World world, BlockPos pos, IMessage packet){
-        TargetPoint point = new TargetPoint(world.provider.getDimension(), pos.getX()+0.5, pos.getY()+0.5, pos.getZ()+0.5, PACKET_RANGE);
+        sendToAllAround(world, pos.getX()+0.5, pos.getY()+0.5, pos.getZ()+0.5, packet);
+    }
+
+    public static void sendToAllAround(World world, double x, double y, double z, IMessage packet){
+        TargetPoint point = new TargetPoint(world.provider.getDimension(), x, y, z, PACKET_RANGE);
         wrapper.sendToAllAround(packet, point);
     }
 

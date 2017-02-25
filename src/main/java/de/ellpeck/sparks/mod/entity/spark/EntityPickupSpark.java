@@ -1,7 +1,10 @@
 package de.ellpeck.sparks.mod.entity.spark;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
 import de.ellpeck.sparks.mod.Sparks;
+import de.ellpeck.sparks.mod.packet.PacketHandler;
+import de.ellpeck.sparks.mod.packet.PacketParticleExplosion;
 import de.ellpeck.sparks.mod.util.ModUtil;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.ItemStack;
@@ -14,6 +17,19 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 public class EntityPickupSpark extends EntitySparkBase{
+
+    public static final Predicate<EntityItem> PICKUP_PREDICATE = new Predicate<EntityItem>(){
+        @Override
+        public boolean apply(EntityItem input){
+            if(!input.isDead){
+                NBTTagCompound data = input.getEntityData();
+                return !data.getBoolean(ModUtil.MOD_ID+"Pickup");
+            }
+            else{
+                return false;
+            }
+        }
+    };
 
     private static final DataParameter<Optional<ItemStack>> CARRYING_STACK = EntityDataManager.createKey(EntityPickupSpark.class, DataSerializers.OPTIONAL_ITEM_STACK);
 
@@ -87,6 +103,9 @@ public class EntityPickupSpark extends EntitySparkBase{
 
                     if(dist.lengthSquared() < 0.01){
                         this.setCarryingStack(this.targetItem.getEntityItem());
+
+                        PacketParticleExplosion packet = new PacketParticleExplosion(this.posX, this.posY, this.posZ, this.getColor(), 20, 0.02, 4F, false);
+                        PacketHandler.sendToAllAround(this.world, this.posX, this.posY, this.posZ, packet);
 
                         this.targetItem.setDead();
                         this.targetItem = null;

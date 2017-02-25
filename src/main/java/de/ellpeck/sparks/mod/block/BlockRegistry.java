@@ -13,7 +13,7 @@ public final class BlockRegistry{
         blockSparkInitiator = new BlockSparkInitiator();
         blockMirror = new BlockMirror();
         blockSplitter = new BlockSplitter();
-        blockPickerUpper = new BlockPickerUpper();
+        blockPickerUpper = new BlockBurningCreator();
     }
 
 }
