@@ -1,11 +1,11 @@
 [
 {
-  "modid": "deflection",
-  "name": "Deflection",
+  "modid": "sparks",
+  "name": "Sparks",
   "description": "Mirrors move power, basically",
   "version": "${version}",
   "mcversion": "${mcversion}",
-  "url": "http://github.com/Ellpeck/Deflection",
+  "url": "http://github.com/Ellpeck/Sparks",
   "updateUrl": "",
   "authorList": [ "Ellpeck" ],
   "credits": "Author: Ellpeck",

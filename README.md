@@ -1,2 +1,2 @@
-# Deflection
+# Sparks
 Mirrors move power, basically
