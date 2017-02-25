@@ -34,8 +34,8 @@ public class RenderPickupSpark extends Render<EntityPickupSpark>{
         ItemStack stack = entity.getCarryingStack();
         if(stack != null){
             GlStateManager.pushMatrix();
-            GlStateManager.translate((float)x, (float)y+0.3F, (float)z);
-            GlStateManager.scale(0.5F, 0.5F, 0.5F);
+            GlStateManager.translate((float)x, (float)y+0.2F, (float)z);
+            GlStateManager.scale(0.3F, 0.3F, 0.3F);
 
             double boop = Minecraft.getSystemTime()/1000D;
             GlStateManager.translate(0D, Math.sin(boop%(2*Math.PI))*0.25, 0D);

@@ -6,15 +6,18 @@ import de.ellpeck.sparks.mod.Sparks;
 import de.ellpeck.sparks.mod.packet.PacketHandler;
 import de.ellpeck.sparks.mod.packet.PacketParticleExplosion;
 import de.ellpeck.sparks.mod.util.ModUtil;
+import de.ellpeck.sparks.mod.util.WorldUtil;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+
+import java.util.UUID;
 
 public class EntityPickupSpark extends EntitySparkBase{
 
@@ -34,7 +37,10 @@ public class EntityPickupSpark extends EntitySparkBase{
     private static final DataParameter<Optional<ItemStack>> CARRYING_STACK = EntityDataManager.createKey(EntityPickupSpark.class, DataSerializers.OPTIONAL_ITEM_STACK);
 
     private EntityItem targetItem;
-    private BlockPos emittedPos;
+    private UUID targetItemId;
+    private int amountToPickUp;
+
+    private Vec3d emittedPos;
 
     private int itemWaitingCooldown;
 
@@ -42,13 +48,16 @@ public class EntityPickupSpark extends EntitySparkBase{
         super(world);
     }
 
-    public EntityPickupSpark(World world, double x, double y, double z, BlockPos emittedPos, EntityItem targetItem){
+    public EntityPickupSpark(World world, double x, double y, double z, Vec3d emittedPos, EntityItem targetItem, int amountToPickUp){
         super(world);
         this.emittedPos = emittedPos;
         this.targetItem = targetItem;
+        this.amountToPickUp = amountToPickUp;
 
-        NBTTagCompound data = this.targetItem.getEntityData();
+        EntityItem target = this.getTargetItem();
+        NBTTagCompound data = target.getEntityData();
         data.setBoolean(ModUtil.MOD_ID+"Pickup", true);
+        this.targetItemId = target.getUniqueID();
 
         this.setPosition(x, y, z);
     }
@@ -63,12 +72,19 @@ public class EntityPickupSpark extends EntitySparkBase{
     protected void writeEntityToNBT(NBTTagCompound compound){
         super.writeEntityToNBT(compound);
 
-        compound.setLong("EmittedPos", this.emittedPos.toLong());
+        compound.setDouble("EmittedX", this.emittedPos.xCoord);
+        compound.setDouble("EmittedY", this.emittedPos.yCoord);
+        compound.setDouble("EmittedZ", this.emittedPos.zCoord);
+
         compound.setInteger("Cooldown", this.itemWaitingCooldown);
 
         ItemStack carrying = this.getCarryingStack();
         if(carrying != null){
             compound.setTag("CarryingItem", carrying.writeToNBT(new NBTTagCompound()));
+        }
+        else{
+            compound.setUniqueId("TargetItem", this.targetItemId);
+            compound.setInteger("AmountToPickUp", this.amountToPickUp);
         }
     }
 
@@ -76,12 +92,20 @@ public class EntityPickupSpark extends EntitySparkBase{
     protected void readEntityFromNBT(NBTTagCompound compound){
         super.readEntityFromNBT(compound);
 
-        this.emittedPos = BlockPos.fromLong(compound.getLong("EmittedPos"));
+        double x = compound.getDouble("EmittedX");
+        double y = compound.getDouble("EmittedY");
+        double z = compound.getDouble("EmittedZ");
+        this.emittedPos = new Vec3d(x, y, z);
+
         this.itemWaitingCooldown = compound.getInteger("Cooldown");
 
         if(compound.hasKey("CarryingItem")){
             NBTTagCompound tag = compound.getCompoundTag("CarryingItem");
             this.setCarryingStack(ItemStack.func_77949_a(tag));
+        }
+        else{
+            this.targetItemId = compound.getUniqueId("TargetItem");
+            this.amountToPickUp = compound.getInteger("AmountToPickUp");
         }
     }
 
@@ -91,24 +115,40 @@ public class EntityPickupSpark extends EntitySparkBase{
 
         if(!this.world.isRemote){
             if(this.getCarryingStack() == null){
-                if(this.targetItem != null && !this.targetItem.isDead){
+                EntityItem target = this.getTargetItem();
+                if(target != null && !target.isDead){
                     Vec3d pos = new Vec3d(this.posX, this.posY, this.posZ);
-                    Vec3d itemPos = new Vec3d(this.targetItem.posX, this.targetItem.posY+0.25, this.targetItem.posZ);
+                    Vec3d itemPos = new Vec3d(target.posX, target.posY+0.25, target.posZ);
                     Vec3d dist = itemPos.subtract(pos);
 
-                    Vec3d motion = dist.normalize().scale(0.05);
-                    this.motionX = motion.xCoord;
-                    this.motionY = motion.yCoord;
-                    this.motionZ = motion.zCoord;
-
                     if(dist.lengthSquared() < 0.01){
-                        this.setCarryingStack(this.targetItem.getEntityItem());
+                        ItemStack stack = target.getEntityItem();
+                        if(stack != null){
+                            ItemStack copy = stack.copy();
+                            copy.stackSize = this.amountToPickUp;
+                            this.setCarryingStack(copy);
 
-                        PacketParticleExplosion packet = new PacketParticleExplosion(this.posX, this.posY, this.posZ, this.getColor(), 20, 0.02, 4F, false);
-                        PacketHandler.sendToAllAround(this.world, this.posX, this.posY, this.posZ, packet);
+                            stack.stackSize -= this.amountToPickUp;
+                            if(stack.stackSize <= 0){
+                                target.setDead();
+                            }
+                            else{
+                                NBTTagCompound data = target.getEntityData();
+                                data.removeTag(ModUtil.MOD_ID+"Pickup");
+                            }
 
-                        this.targetItem.setDead();
+                            PacketParticleExplosion packet = new PacketParticleExplosion(this.posX, this.posY, this.posZ, this.getColor(), 20, 0.02, 4F, false);
+                            PacketHandler.sendToAllAround(this.world, this.posX, this.posY, this.posZ, packet);
+                        }
+
                         this.targetItem = null;
+                        this.targetItemId = null;
+                    }
+                    else{
+                        Vec3d motion = dist.normalize().scale(0.05);
+                        this.motionX = motion.xCoord;
+                        this.motionY = motion.yCoord;
+                        this.motionZ = motion.zCoord;
                     }
                 }
                 else{
@@ -117,17 +157,22 @@ public class EntityPickupSpark extends EntitySparkBase{
             }
             else{
                 Vec3d pos = new Vec3d(this.posX, this.posY, this.posZ);
-                Vec3d homePos = new Vec3d(this.emittedPos.getX()+0.5, this.emittedPos.getY()+0.5, this.emittedPos.getZ()+0.5);
-                Vec3d dist = homePos.subtract(pos);
+                Vec3d dist = this.emittedPos.subtract(pos);
 
-                Vec3d motion = dist.normalize().scale(0.05);
-                this.motionX = motion.xCoord;
-                this.motionY = motion.yCoord;
-                this.motionZ = motion.zCoord;
+                if(dist.lengthSquared() < 0.01){
+                    this.kill();
+                }
+                else{
+                    Vec3d motion = dist.normalize().scale(0.05);
+                    this.motionX = motion.xCoord;
+                    this.motionY = motion.yCoord;
+                    this.motionZ = motion.zCoord;
+                }
+
             }
         }
         else{
-            Sparks.proxy.spawnMagicParticle(this.world, (float)(this.prevPosX+(this.posX-this.prevPosX)*5F), (float)(this.prevPosY+(this.posY-this.prevPosY)*5F), (float)(this.prevPosZ+(this.posZ-this.prevPosZ)*5F), 0.0125F*(this.rand.nextFloat()-0.5F), 0.0125F*(this.rand.nextFloat()-0.5F), 0.0125F*(this.rand.nextFloat()-0.5F), this.getColor(), 2F, 40, 0F, false);
+            Sparks.proxy.spawnMagicParticle(this.world, (float)(this.prevPosX+(this.posX-this.prevPosX)*5F), (float)(this.prevPosY+(this.posY-this.prevPosY)*5F), (float)(this.prevPosZ+(this.posZ-this.prevPosZ)*5F), 0.0125F*(this.rand.nextFloat()-0.5F), 0.0125F*(this.rand.nextFloat()-0.5F), 0.0125F*(this.rand.nextFloat()-0.5F), this.getColor(), 2F, 30, 0F, false);
         }
     }
 
@@ -143,12 +188,23 @@ public class EntityPickupSpark extends EntitySparkBase{
                 this.entityDropItem(stack, 0F);
             }
             else{
-                if(this.targetItem != null){
-                    NBTTagCompound data = this.targetItem.getEntityData();
+                EntityItem target = this.getTargetItem();
+                if(target != null){
+                    NBTTagCompound data = target.getEntityData();
                     data.removeTag(ModUtil.MOD_ID+"Pickup");
                 }
             }
         }
+    }
+
+    public EntityItem getTargetItem(){
+        if(this.targetItem == null){
+            Entity entity = WorldUtil.getEntityByUUID(this.world, this.targetItemId);
+            if(entity != null && entity instanceof EntityItem){
+                this.targetItem = (EntityItem)entity;
+            }
+        }
+        return this.targetItem;
     }
 
     public ItemStack getCarryingStack(){

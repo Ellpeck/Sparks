@@ -4,7 +4,9 @@ import com.google.common.base.Predicate;
 import de.ellpeck.sparks.api.cap.PotentialStorage;
 import de.ellpeck.sparks.api.cap.SparksCapabilities;
 import de.ellpeck.sparks.mod.Sparks;
+import de.ellpeck.sparks.mod.block.BlockBurningCreator;
 import de.ellpeck.sparks.mod.entity.spark.EntityPickupSpark;
+import de.ellpeck.sparks.mod.util.WorldUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.ItemStack;
@@ -13,9 +15,11 @@ import net.minecraft.tileentity.TileEntityFurnace;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.common.capabilities.Capability;
 
 import java.util.List;
+import java.util.UUID;
 
 public class TileBurningCreator extends TileBase implements ITickable{
 
@@ -24,7 +28,7 @@ public class TileBurningCreator extends TileBase implements ITickable{
         public boolean apply(EntityItem input){
             if(EntityPickupSpark.PICKUP_PREDICATE.apply(input)){
                 ItemStack stack = input.getEntityItem();
-                if(stack.stackSize == 1 && TileEntityFurnace.getItemBurnTime(stack) > 0){
+                if(TileEntityFurnace.getItemBurnTime(stack) > 0){
                     return true;
                 }
             }
@@ -40,7 +44,8 @@ public class TileBurningCreator extends TileBase implements ITickable{
     private int lastBurnTime;
     private int lastStorage;
 
-    private int spawnedPickupSparkId = -1;
+    private EntityPickupSpark spawnedPickupSpark;
+    private UUID spawnedPickupSparkId;
 
     @Override
     public void update(){
@@ -52,40 +57,54 @@ public class TileBurningCreator extends TileBase implements ITickable{
             }
 
             if(this.currBurnTime <= 0 && !this.storage.isNearlyFull(200)){
-                if(this.world.getTotalWorldTime()%100 == 0){
-                    boolean shouldTry = false;
+                if(this.world.getTotalWorldTime()%40 == 0){
+                    EntityPickupSpark spawnedSpark = this.getSpawnedPickupSpark();
 
-                    if(this.spawnedPickupSparkId != -1){
-                        Entity entity = this.world.getEntityByID(this.spawnedPickupSparkId);
-                        if(entity == null || !(entity instanceof EntityPickupSpark)){
-                            shouldTry = true;
-                        }
-                    }
-                    else{
-                        shouldTry = true;
-                    }
-
-                    if(shouldTry){
+                    if(spawnedSpark == null || spawnedSpark.isDead){
                         double x = this.pos.getX()+0.5;
                         double y = this.pos.getY()+0.5;
                         double z = this.pos.getZ()+0.5;
-
                         AxisAlignedBB aabb = new AxisAlignedBB(x-5, y-5, z-5, x+5, y+5, z+5);
                         List<EntityItem> items = this.world.getEntitiesWithinAABB(EntityItem.class, aabb, PREDICATE);
 
                         if(items != null && !items.isEmpty()){
                             EntityItem item = items.get(this.world.rand.nextInt(items.size()));
 
-                            EntityPickupSpark spark = new EntityPickupSpark(this.world, x, y, z, this.pos, item);
-                            spark.setColor(0xF0FF26);
+                            EnumFacing facing = this.world.getBlockState(this.pos).getValue(BlockBurningCreator.FACING);
+                            double emitX;
+                            double emitZ;
+
+                            if(facing == EnumFacing.NORTH){
+                                emitX = 0.5;
+                                emitZ = 0.1;
+                            }
+                            else if(facing == EnumFacing.EAST){
+                                emitX = 0.9;
+                                emitZ = 0.5;
+                            }
+                            else if(facing == EnumFacing.SOUTH){
+                                emitX = 0.5;
+                                emitZ = 0.9;
+                            }
+                            else{
+                                emitX = 0.1;
+                                emitZ = 0.5;
+                            }
+
+                            Vec3d emitPos = new Vec3d(this.pos.getX()+emitX, this.pos.getY()+0.15, this.pos.getZ()+emitZ);
+                            EntityPickupSpark spark = new EntityPickupSpark(this.world, emitPos.xCoord, emitPos.yCoord, emitPos.zCoord, emitPos, item, 1);
+                            spark.setColor(0x33822C);
+                            spark.setLastInteractor(this.pos);
                             this.world.spawnEntity(spark);
-                            this.spawnedPickupSparkId = spark.getEntityId();
+
+                            this.spawnedPickupSpark = spark;
+                            this.spawnedPickupSparkId = spark.getUniqueID();
                         }
                     }
                 }
             }
 
-            if((this.lastBurnTime != this.currBurnTime || this.lastStorage != this.storage.getPotential()) && this.world.getTotalWorldTime()%40 == 0){
+            if((this.lastBurnTime != this.currBurnTime || this.lastStorage != this.storage.getPotential()) && this.world.getTotalWorldTime()%20 == 0){
                 this.lastBurnTime = this.currBurnTime;
                 this.lastStorage = this.storage.getPotential();
 
@@ -94,24 +113,35 @@ public class TileBurningCreator extends TileBase implements ITickable{
         }
         else{
             if(this.currBurnTime > 0){
-                if(this.world.rand.nextFloat() >= 0.25F){
-                    double x = this.pos.getX()+0.5+this.world.rand.nextGaussian()*0.1;
-                    double y = this.pos.getY()+1.1;
-                    double z = this.pos.getZ()+0.5+this.world.rand.nextGaussian()*0.1;
+                if(this.world.rand.nextFloat() >= 0.3F){
+                    double x = this.pos.getX()+0.5+this.world.rand.nextGaussian()*0.06;
+                    double y = this.pos.getY()+0.55;
+                    double z = this.pos.getZ()+0.5+this.world.rand.nextGaussian()*0.06;
 
-                    Sparks.proxy.spawnMagicParticle(this.world, x, y, z, 0, this.world.rand.nextFloat()*0.03, 0, 0xB50006, 2F, 40, 0F, false);
+                    Sparks.proxy.spawnMagicParticle(this.world, x, y, z, 0, this.world.rand.nextFloat()*0.04, 0, 0xFF6600, 2F, 40, 0F, false);
                 }
             }
         }
     }
 
+    public EntityPickupSpark getSpawnedPickupSpark(){
+        if(this.spawnedPickupSpark == null){
+            Entity entity = WorldUtil.getEntityByUUID(this.world, this.spawnedPickupSparkId);
+            if(entity != null && entity instanceof EntityPickupSpark){
+                this.spawnedPickupSpark = (EntityPickupSpark)entity;
+            }
+        }
+        return this.spawnedPickupSpark;
+    }
+
     public boolean fuel(ItemStack stack){
-        if(this.currBurnTime <= 0 && stack.stackSize == 1){
+        if(this.currBurnTime <= 0){
             int time = TileEntityFurnace.getItemBurnTime(stack);
             this.maxBurnTime = time;
             this.currBurnTime = time;
 
-            this.spawnedPickupSparkId = -1;
+            this.spawnedPickupSpark = null;
+            this.spawnedPickupSparkId = null;
 
             this.sendToClient();
             this.markDirty();
@@ -129,7 +159,11 @@ public class TileBurningCreator extends TileBase implements ITickable{
 
         compound.setInteger("CurrBurn", this.currBurnTime);
         compound.setInteger("MaxBurn", this.maxBurnTime);
-        compound.setInteger("PickupId", this.spawnedPickupSparkId);
+
+        if(this.spawnedPickupSparkId != null){
+            compound.setUniqueId("PickupId", this.spawnedPickupSparkId);
+        }
+
         this.storage.writeToNBT(compound);
     }
 
@@ -139,7 +173,11 @@ public class TileBurningCreator extends TileBase implements ITickable{
 
         this.currBurnTime = compound.getInteger("CurrBurn");
         this.maxBurnTime = compound.getInteger("MaxBurn");
-        this.spawnedPickupSparkId = compound.getInteger("PickupId");
+
+        if(compound.hasUniqueId("PickupId")){
+            this.spawnedPickupSparkId = compound.getUniqueId("PickupId");
+        }
+
         this.storage.readFromNBT(compound);
     }
 

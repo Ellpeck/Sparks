@@ -37,11 +37,10 @@ public class EntitySparkBase extends Entity implements ISpark{
             IBlockState state = this.world.getBlockState(pos);
             Block block = state.getBlock();
 
-            if(!(block instanceof ISparkInteractor) || !((ISparkInteractor)block).interact(this.world, pos, state, this)){
-                List<AxisAlignedBB> list = new ArrayList<AxisAlignedBB>();
-                state.addCollisionBoxToList(this.world, pos, this.getEntityBoundingBox(), list, this);
-
-                if(!list.isEmpty()){
+            List<AxisAlignedBB> list = new ArrayList<AxisAlignedBB>();
+            state.addCollisionBoxToList(this.world, pos, this.getEntityBoundingBox(), list, this);
+            if(!list.isEmpty()){
+                if(!(block instanceof ISparkInteractor) || !((ISparkInteractor)block).interact(this.world, pos, state, this)){
                     this.onCollide(list);
                     return;
                 }

@@ -1,42 +1,108 @@
 package de.ellpeck.sparks.mod.block;
 
+import de.ellpeck.sparks.api.cap.IPotentialHandler;
+import de.ellpeck.sparks.api.cap.SparksCapabilities;
 import de.ellpeck.sparks.api.iface.ISpark;
 import de.ellpeck.sparks.api.iface.ISparkInteractor;
 import de.ellpeck.sparks.mod.entity.spark.EntityPickupSpark;
 import de.ellpeck.sparks.mod.tile.TileBurningCreator;
+import net.minecraft.block.BlockHorizontal;
 import net.minecraft.block.material.Material;
+import net.minecraft.block.properties.PropertyDirection;
+import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextComponentString;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
 public class BlockBurningCreator extends BlockContainerBase implements ISparkInteractor{
+
+    public static final PropertyDirection FACING = BlockHorizontal.FACING;
+
+    private static final float F = 1F/16F;
+    private static final AxisAlignedBB AABB = new AxisAlignedBB(2*F, 0, 2*F, 1-2*F, 1-4*F, 1-2*F);
 
     public BlockBurningCreator(){
         super(Material.ROCK, "burning_creator", TileBurningCreator.class, "burning_creator");
     }
 
     @Override
+    public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos){
+        return AABB;
+    }
+
+    @Override
     public boolean interact(World world, BlockPos pos, IBlockState state, ISpark spark){
         if(spark instanceof EntityPickupSpark){
             EntityPickupSpark pickup = (EntityPickupSpark)spark;
-            ItemStack stack = pickup.getCarryingStack();
-            if(stack != null){
-                TileEntity tile = world.getTileEntity(pos);
-                if(tile instanceof TileBurningCreator){
-                    if(((TileBurningCreator)tile).fuel(stack)){
-                        pickup.setCarryingStack(null);
-                        pickup.setKilled();
+            if(pos.equals(pickup.getLastInteractor())){
+                ItemStack stack = pickup.getCarryingStack();
+                if(stack != null){
+                    TileEntity tile = world.getTileEntity(pos);
+                    if(tile instanceof TileBurningCreator){
+                        if(((TileBurningCreator)tile).fuel(stack)){
+                            pickup.setCarryingStack(null);
+                            pickup.setKilled();
 
-                        return true;
+                            return true;
+                        }
                     }
                 }
-            }
-            else{
-                return true;
+                else{
+                    return pickup.ticksExisted <= 5;
+                }
             }
         }
         return false;
+    }
+
+    @Override
+    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, ItemStack stack, EnumFacing facing, float hitX, float hitY, float hitZ){
+        if(!world.isRemote){
+            TileEntity tile = world.getTileEntity(pos);
+            IPotentialHandler cap = tile.getCapability(SparksCapabilities.capabilityPotential, null);
+            if(cap != null){
+                player.sendMessage(new TextComponentString("Stored: "+cap.getPotential()+"/"+cap.getMaxPotential()));
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public boolean isFullCube(IBlockState state){
+        return false;
+    }
+
+    @Override
+    public boolean isOpaqueCube(IBlockState state){
+        return false;
+    }
+
+    @Override
+    public int getMetaFromState(IBlockState state){
+        return state.getValue(FACING).getHorizontalIndex();
+    }
+
+    @Override
+    public IBlockState getStateFromMeta(int meta){
+        return this.getDefaultState().withProperty(FACING, EnumFacing.getHorizontal(meta));
+    }
+
+    @Override
+    protected BlockStateContainer createBlockState(){
+        return new BlockStateContainer(this, FACING);
+    }
+
+    @Override
+    public IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer, ItemStack stack){
+        return this.getDefaultState().withProperty(FACING, placer.getHorizontalFacing().getOpposite());
     }
 }
