@@ -15,8 +15,8 @@ apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'idea'
 
 version = "1.10.2-r1"
-group = "de.ellpeck.deflection"
-archivesBaseName = "Deflection"
+group = "de.ellpeck.sparks"
+archivesBaseName = "Sparks"
 
 if(hasProperty('buildnumber')){
     version = "${version}-${this.properties['buildnumber']}"
