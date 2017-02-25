@@ -3,6 +3,7 @@ package de.ellpeck.sparks.mod.entity.spark;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import de.ellpeck.sparks.mod.Sparks;
+import de.ellpeck.sparks.mod.entity.spark.base.EntitySparkBase;
 import de.ellpeck.sparks.mod.packet.PacketHandler;
 import de.ellpeck.sparks.mod.packet.PacketParticleExplosion;
 import de.ellpeck.sparks.mod.util.ModUtil;
@@ -40,7 +41,7 @@ public class EntityPickupSpark extends EntitySparkBase{
     private UUID targetItemId;
     private int amountToPickUp;
 
-    private Vec3d emittedPos;
+    private Vec3d homePos;
 
     private int itemWaitingCooldown;
 
@@ -48,9 +49,9 @@ public class EntityPickupSpark extends EntitySparkBase{
         super(world);
     }
 
-    public EntityPickupSpark(World world, double x, double y, double z, Vec3d emittedPos, EntityItem targetItem, int amountToPickUp){
+    public EntityPickupSpark(World world, double x, double y, double z, Vec3d homePos, EntityItem targetItem, int amountToPickUp){
         super(world);
-        this.emittedPos = emittedPos;
+        this.homePos = homePos;
         this.targetItem = targetItem;
         this.amountToPickUp = amountToPickUp;
 
@@ -72,9 +73,9 @@ public class EntityPickupSpark extends EntitySparkBase{
     protected void writeEntityToNBT(NBTTagCompound compound){
         super.writeEntityToNBT(compound);
 
-        compound.setDouble("EmittedX", this.emittedPos.xCoord);
-        compound.setDouble("EmittedY", this.emittedPos.yCoord);
-        compound.setDouble("EmittedZ", this.emittedPos.zCoord);
+        compound.setDouble("HomeX", this.homePos.xCoord);
+        compound.setDouble("HomeY", this.homePos.yCoord);
+        compound.setDouble("HomeZ", this.homePos.zCoord);
 
         compound.setInteger("Cooldown", this.itemWaitingCooldown);
 
@@ -92,10 +93,10 @@ public class EntityPickupSpark extends EntitySparkBase{
     protected void readEntityFromNBT(NBTTagCompound compound){
         super.readEntityFromNBT(compound);
 
-        double x = compound.getDouble("EmittedX");
-        double y = compound.getDouble("EmittedY");
-        double z = compound.getDouble("EmittedZ");
-        this.emittedPos = new Vec3d(x, y, z);
+        double x = compound.getDouble("HomeX");
+        double y = compound.getDouble("HomeY");
+        double z = compound.getDouble("HomeZ");
+        this.homePos = new Vec3d(x, y, z);
 
         this.itemWaitingCooldown = compound.getInteger("Cooldown");
 
@@ -157,7 +158,7 @@ public class EntityPickupSpark extends EntitySparkBase{
             }
             else{
                 Vec3d pos = new Vec3d(this.posX, this.posY, this.posZ);
-                Vec3d dist = this.emittedPos.subtract(pos);
+                Vec3d dist = this.homePos.subtract(pos);
 
                 if(dist.lengthSquared() < 0.01){
                     this.kill();

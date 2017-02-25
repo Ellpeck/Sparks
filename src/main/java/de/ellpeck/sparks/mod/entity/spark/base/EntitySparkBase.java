@@ -1,4 +1,4 @@
-package de.ellpeck.sparks.mod.entity.spark;
+package de.ellpeck.sparks.mod.entity.spark.base;
 
 import de.ellpeck.sparks.api.iface.ISpark;
 import de.ellpeck.sparks.api.iface.ISparkInteractor;
@@ -16,7 +16,7 @@ import net.minecraft.world.World;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EntitySparkBase extends Entity implements ISpark{
+public abstract class EntitySparkBase extends Entity implements ISpark{
 
     protected static final DataParameter<Integer> COLOR = EntityDataManager.createKey(EntitySparkBase.class, DataSerializers.VARINT);
 
@@ -65,12 +65,14 @@ public class EntitySparkBase extends Entity implements ISpark{
     protected void readEntityFromNBT(NBTTagCompound compound){
         this.setColor(compound.getInteger("Color"));
         this.lastInteractor = BlockPos.fromLong(compound.getLong("LastInteractor"));
+        this.ticksExisted = compound.getInteger("TicksExisted");
     }
 
     @Override
     protected void writeEntityToNBT(NBTTagCompound compound){
         compound.setInteger("Color", this.getColor());
         compound.setLong("LastInteractor", this.lastInteractor.toLong());
+        compound.setInteger("TicksExisted", this.ticksExisted);
     }
 
     @Override

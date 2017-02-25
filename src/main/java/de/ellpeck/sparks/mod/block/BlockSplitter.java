@@ -48,7 +48,8 @@ public class BlockSplitter extends BlockBase implements ISparkInteractor{
                             PacketParticleExplosion packet = new PacketParticleExplosion(x, y, z, travelling.getColor(), 15, 0.02, 2.5F, false);
                             PacketHandler.sendToAllAround(world, pos, packet);
 
-                            return true;
+                            //So that the spark dies
+                            return false;
                         }
                         else{
                             return false;
