@@ -178,8 +178,8 @@ public class EntityPickupSpark extends EntitySparkBase{
     }
 
     @Override
-    protected void kill(){
-        super.kill();
+    public void setDead(){
+        super.setDead();
 
         if(!this.world.isRemote){
             ItemStack stack = this.getCarryingStack();

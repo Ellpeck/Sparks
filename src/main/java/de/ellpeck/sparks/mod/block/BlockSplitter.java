@@ -8,6 +8,7 @@ import de.ellpeck.sparks.mod.packet.PacketParticleExplosion;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.BlockRenderLayer;
+import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -31,7 +32,7 @@ public class BlockSplitter extends BlockBase implements ISparkInteractor{
     }
 
     @Override
-    public boolean interact(World world, BlockPos pos, IBlockState state, ISpark spark){
+    public EnumActionResult interact(World world, BlockPos pos, IBlockState state, ISpark spark){
         if(spark instanceof ITravellingSpark){
             ITravellingSpark travelling = (ITravellingSpark)spark;
 
@@ -48,18 +49,18 @@ public class BlockSplitter extends BlockBase implements ISparkInteractor{
                             PacketParticleExplosion packet = new PacketParticleExplosion(x, y, z, travelling.getColor(), 15, 0.02, 2.5F, false);
                             PacketHandler.sendToAllAround(world, pos, packet);
 
-                            //So that the spark dies
-                            return false;
+                            spark.setKilled();
+                            return EnumActionResult.SUCCESS;
                         }
                         else{
-                            return false;
+                            return EnumActionResult.FAIL;
                         }
                     }
                 }
-                return true;
+                return EnumActionResult.PASS;
             }
         }
-        return false;
+        return EnumActionResult.FAIL;
     }
 
     @Override

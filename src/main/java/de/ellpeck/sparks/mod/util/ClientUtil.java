@@ -11,7 +11,6 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 @SideOnly(Side.CLIENT)
 public final class ClientUtil{
 
-    @SideOnly(Side.CLIENT)
     public static void renderItemInWorld(ItemStack stack){
         if(stack != null){
             GlStateManager.pushMatrix();

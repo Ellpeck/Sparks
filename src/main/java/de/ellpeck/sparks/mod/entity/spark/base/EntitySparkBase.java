@@ -3,12 +3,14 @@ package de.ellpeck.sparks.mod.entity.spark.base;
 import de.ellpeck.sparks.api.iface.ISpark;
 import de.ellpeck.sparks.api.iface.ISparkInteractor;
 import net.minecraft.block.Block;
+import net.minecraft.block.material.EnumPushReaction;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
+import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -40,7 +42,22 @@ public abstract class EntitySparkBase extends Entity implements ISpark{
             List<AxisAlignedBB> list = new ArrayList<AxisAlignedBB>();
             state.addCollisionBoxToList(this.world, pos, this.getEntityBoundingBox(), list, this);
             if(!list.isEmpty()){
-                if(!(block instanceof ISparkInteractor) || !((ISparkInteractor)block).interact(this.world, pos, state, this)){
+                boolean shouldCollide = true;
+
+                if(block instanceof ISparkInteractor){
+                    ISparkInteractor interactor = (ISparkInteractor)block;
+
+                    EnumActionResult result = interactor.interact(this.world, pos, state, this);
+                    if(result == EnumActionResult.SUCCESS || result == EnumActionResult.PASS){
+                        shouldCollide = false;
+                    }
+
+                    if(!this.isDead){
+                        this.onInteraction(interactor, pos, state, result);
+                    }
+                }
+
+                if(shouldCollide && !this.isDead){
                     this.onCollide(list);
                     return;
                 }
@@ -54,6 +71,10 @@ public abstract class EntitySparkBase extends Entity implements ISpark{
 
     protected void onCollide(List<AxisAlignedBB> list){
         this.kill();
+    }
+
+    protected void onInteraction(ISparkInteractor block, BlockPos pos, IBlockState state, EnumActionResult result){
+
     }
 
     @Override
@@ -118,5 +139,10 @@ public abstract class EntitySparkBase extends Entity implements ISpark{
     @Override
     public void setKilled(){
         this.kill();
+    }
+
+    @Override
+    public EnumPushReaction getPushReaction(){
+        return EnumPushReaction.IGNORE;
     }
 }

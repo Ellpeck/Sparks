@@ -13,10 +13,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.IStringSerializable;
-import net.minecraft.util.SoundCategory;
+import net.minecraft.util.*;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
@@ -44,7 +41,7 @@ public class BlockMirror extends BlockBase implements ISparkInteractor{
     }
 
     @Override
-    public boolean interact(World world, BlockPos pos, IBlockState state, ISpark spark){
+    public EnumActionResult interact(World world, BlockPos pos, IBlockState state, ISpark spark){
         if(spark instanceof ITravellingSpark){
             ITravellingSpark travelling = (ITravellingSpark)spark;
             EnumFacing facing = travelling.getFacing();
@@ -61,14 +58,16 @@ public class BlockMirror extends BlockBase implements ISparkInteractor{
 
                     PacketParticleExplosion packet = new PacketParticleExplosion(x, y, z, travelling.getColor(), 20, 0.01, 1.5F, false);
                     PacketHandler.sendToAllAround(world, pos, packet);
+
+                    return EnumActionResult.SUCCESS;
                 }
-                return true;
+                return EnumActionResult.PASS;
             }
-            return pos.equals(travelling.getLastInteractor());
+            else if(pos.equals(travelling.getLastInteractor())){
+                return EnumActionResult.PASS;
+            }
         }
-        else{
-            return false;
-        }
+        return EnumActionResult.FAIL;
     }
 
     @Override

@@ -15,6 +15,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -40,7 +41,7 @@ public class BlockBurningCreator extends BlockContainerBase implements ISparkInt
     }
 
     @Override
-    public boolean interact(World world, BlockPos pos, IBlockState state, ISpark spark){
+    public EnumActionResult interact(World world, BlockPos pos, IBlockState state, ISpark spark){
         if(spark instanceof EntityPickupSpark){
             EntityPickupSpark pickup = (EntityPickupSpark)spark;
             if(pos.equals(pickup.getLastInteractor())){
@@ -52,16 +53,16 @@ public class BlockBurningCreator extends BlockContainerBase implements ISparkInt
                             pickup.setCarryingStack(null);
                             pickup.setKilled();
 
-                            return true;
+                            return EnumActionResult.SUCCESS;
                         }
                     }
                 }
-                else{
-                    return pickup.ticksExisted <= 5;
+                else if(pickup.ticksExisted <= 5){
+                    return EnumActionResult.PASS;
                 }
             }
         }
-        return false;
+        return EnumActionResult.FAIL;
     }
 
     @Override

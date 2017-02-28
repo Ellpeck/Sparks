@@ -43,8 +43,14 @@ public class ClientEvents{
 
     @SubscribeEvent
     public void onClientTick(ClientTickEvent event){
-        if(!Minecraft.getMinecraft().isGamePaused()){
+        Minecraft mc = Minecraft.getMinecraft();
+
+        if(!mc.isGamePaused()){
             ParticleHandler.updateParticles();
+        }
+
+        if(mc.world == null){
+            ParticleHandler.clearParticles();
         }
     }
 }

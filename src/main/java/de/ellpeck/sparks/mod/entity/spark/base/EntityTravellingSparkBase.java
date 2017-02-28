@@ -1,12 +1,8 @@
 package de.ellpeck.sparks.mod.entity.spark.base;
 
-import de.ellpeck.sparks.api.iface.ISparkInteractor;
 import de.ellpeck.sparks.api.iface.ITravellingSpark;
-import de.ellpeck.sparks.mod.Sparks;
-import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 public abstract class EntityTravellingSparkBase extends EntitySparkBase implements ITravellingSpark{

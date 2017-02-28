@@ -112,4 +112,10 @@ public final class ParticleHandler{
     public static int getParticleAmount(){
         return PARTICLES.size();
     }
+
+    public static void clearParticles(){
+        if(!PARTICLES.isEmpty()){
+            PARTICLES.clear();
+        }
+    }
 }
