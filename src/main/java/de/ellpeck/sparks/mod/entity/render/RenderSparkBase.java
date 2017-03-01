@@ -10,16 +10,16 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
-public class RenderTravellingSpark extends Render<EntityTravellingSparkBase>{
+public class RenderSparkBase extends Render<EntityTravellingSparkBase>{
 
     public static final IRenderFactory FACTORY = new IRenderFactory<EntityTravellingSparkBase>(){
         @Override
         public Render<? super EntityTravellingSparkBase> createRenderFor(RenderManager manager){
-            return new RenderTravellingSpark(manager);
+            return new RenderSparkBase(manager);
         }
     };
 
-    protected RenderTravellingSpark(RenderManager manager){
+    protected RenderSparkBase(RenderManager manager){
         super(manager);
     }
 

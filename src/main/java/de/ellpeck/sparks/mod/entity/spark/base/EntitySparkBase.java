@@ -41,7 +41,7 @@ public abstract class EntitySparkBase extends Entity implements ISpark{
 
             List<AxisAlignedBB> list = new ArrayList<AxisAlignedBB>();
             state.addCollisionBoxToList(this.world, pos, this.getEntityBoundingBox(), list, this);
-            if(!list.isEmpty()){
+            if(this.shouldCollide(pos, state, block, list)){
                 boolean shouldCollide = true;
 
                 if(block instanceof ISparkInteractor){
@@ -67,6 +67,10 @@ public abstract class EntitySparkBase extends Entity implements ISpark{
                 this.kill();
             }
         }
+    }
+
+    protected boolean shouldCollide(BlockPos pos, IBlockState state, Block block, List<AxisAlignedBB> list){
+        return !list.isEmpty();
     }
 
     protected void onCollide(List<AxisAlignedBB> list){

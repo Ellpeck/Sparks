@@ -4,7 +4,7 @@ import de.ellpeck.sparks.api.cap.IPotentialHandler;
 import de.ellpeck.sparks.api.cap.SparksCapabilities;
 import de.ellpeck.sparks.api.iface.ISpark;
 import de.ellpeck.sparks.api.iface.ISparkInteractor;
-import de.ellpeck.sparks.mod.entity.spark.EntityPickupSpark;
+import de.ellpeck.sparks.mod.entity.spark.pickup.EntityItemPickupSpark;
 import de.ellpeck.sparks.mod.tile.TileBurningCreator;
 import net.minecraft.block.BlockHorizontal;
 import net.minecraft.block.material.Material;
@@ -42,8 +42,8 @@ public class BlockBurningCreator extends BlockContainerBase implements ISparkInt
 
     @Override
     public EnumActionResult interact(World world, BlockPos pos, IBlockState state, ISpark spark){
-        if(spark instanceof EntityPickupSpark){
-            EntityPickupSpark pickup = (EntityPickupSpark)spark;
+        if(spark instanceof EntityItemPickupSpark){
+            EntityItemPickupSpark pickup = (EntityItemPickupSpark)spark;
             if(pos.equals(pickup.getLastInteractor())){
                 ItemStack stack = pickup.getCarryingStack();
                 if(stack != null){

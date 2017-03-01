@@ -1,6 +1,6 @@
 package de.ellpeck.sparks.mod.entity.render;
 
-import de.ellpeck.sparks.mod.entity.spark.EntityPickupSpark;
+import de.ellpeck.sparks.mod.entity.spark.pickup.EntityItemPickupSpark;
 import de.ellpeck.sparks.mod.util.ClientUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
@@ -14,11 +14,11 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
-public class RenderPickupSpark extends Render<EntityPickupSpark>{
+public class RenderPickupSpark extends Render<EntityItemPickupSpark>{
 
-    public static final IRenderFactory FACTORY = new IRenderFactory<EntityPickupSpark>(){
+    public static final IRenderFactory FACTORY = new IRenderFactory<EntityItemPickupSpark>(){
         @Override
-        public Render<? super EntityPickupSpark> createRenderFor(RenderManager manager){
+        public Render<? super EntityItemPickupSpark> createRenderFor(RenderManager manager){
             return new RenderPickupSpark(manager);
         }
     };
@@ -28,7 +28,7 @@ public class RenderPickupSpark extends Render<EntityPickupSpark>{
     }
 
     @Override
-    public void doRender(EntityPickupSpark entity, double x, double y, double z, float entityYaw, float partialTicks){
+    public void doRender(EntityItemPickupSpark entity, double x, double y, double z, float entityYaw, float partialTicks){
         super.doRender(entity, x, y, z, entityYaw, partialTicks);
 
         ItemStack stack = entity.getCarryingStack();
@@ -48,7 +48,7 @@ public class RenderPickupSpark extends Render<EntityPickupSpark>{
     }
 
     @Override
-    protected ResourceLocation getEntityTexture(EntityPickupSpark entity){
+    protected ResourceLocation getEntityTexture(EntityItemPickupSpark entity){
         return TextureMap.LOCATION_BLOCKS_TEXTURE;
     }
 }

@@ -18,15 +18,14 @@ public class TileBase extends TileEntity{
 
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound compound){
-        NBTTagCompound tag = super.writeToNBT(compound);
-        this.writeSyncedNBT(tag);
-        return tag;
+        this.writeSyncedNBT(compound);
+        return super.writeToNBT(compound);
     }
 
     @Override
     public void readFromNBT(NBTTagCompound compound){
-        super.readFromNBT(compound);
         this.readSyncedNBT(compound);
+        super.readFromNBT(compound);
     }
 
     public void writeSyncedNBT(NBTTagCompound compound){

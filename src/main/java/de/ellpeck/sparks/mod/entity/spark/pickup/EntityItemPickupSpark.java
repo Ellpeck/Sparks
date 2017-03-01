@@ -1,4 +1,4 @@
-package de.ellpeck.sparks.mod.entity.spark;
+package de.ellpeck.sparks.mod.entity.spark.pickup;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
@@ -6,9 +6,8 @@ import de.ellpeck.sparks.mod.Sparks;
 import de.ellpeck.sparks.mod.entity.spark.base.EntityPickupSparkBase;
 import de.ellpeck.sparks.mod.packet.PacketHandler;
 import de.ellpeck.sparks.mod.packet.PacketParticleExplosion;
+import de.ellpeck.sparks.mod.util.CachedEntity;
 import de.ellpeck.sparks.mod.util.ModUtil;
-import de.ellpeck.sparks.mod.util.WorldUtil;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -18,9 +17,7 @@ import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
-import java.util.UUID;
-
-public class EntityPickupSpark extends EntityPickupSparkBase{
+public class EntityItemPickupSpark extends EntityPickupSparkBase{
 
     public static final Predicate<EntityItem> PICKUP_PREDICATE = new Predicate<EntityItem>(){
         @Override
@@ -35,27 +32,22 @@ public class EntityPickupSpark extends EntityPickupSparkBase{
         }
     };
 
-    private static final DataParameter<Optional<ItemStack>> CARRYING_STACK = EntityDataManager.createKey(EntityPickupSpark.class, DataSerializers.OPTIONAL_ITEM_STACK);
+    private static final DataParameter<Optional<ItemStack>> CARRYING_STACK = EntityDataManager.createKey(EntityItemPickupSpark.class, DataSerializers.OPTIONAL_ITEM_STACK);
 
-    private EntityItem targetItem;
-    private UUID targetItemId;
+    private final CachedEntity<EntityItem> targetItem = new CachedEntity<EntityItem>();
     private int amountToPickUp;
 
-    private int itemWaitingCooldown;
-
-    public EntityPickupSpark(World world){
+    public EntityItemPickupSpark(World world){
         super(world);
     }
 
-    public EntityPickupSpark(World world, double x, double y, double z, Vec3d homePos, EntityItem targetItem, int amountToPickUp){
+    public EntityItemPickupSpark(World world, double x, double y, double z, Vec3d homePos, EntityItem targetItem, int amountToPickUp){
         super(world, x, y, z, homePos);
-        this.targetItem = targetItem;
+        this.targetItem.set(targetItem);
         this.amountToPickUp = amountToPickUp;
 
-        EntityItem target = this.getTargetItem();
-        NBTTagCompound data = target.getEntityData();
+        NBTTagCompound data = targetItem.getEntityData();
         data.setBoolean(ModUtil.MOD_ID+"Pickup", true);
-        this.targetItemId = target.getUniqueID();
     }
 
     @Override
@@ -68,14 +60,12 @@ public class EntityPickupSpark extends EntityPickupSparkBase{
     protected void writeEntityToNBT(NBTTagCompound compound){
         super.writeEntityToNBT(compound);
 
-        compound.setInteger("Cooldown", this.itemWaitingCooldown);
-
         ItemStack carrying = this.getCarryingStack();
         if(carrying != null){
             compound.setTag("CarryingItem", carrying.writeToNBT(new NBTTagCompound()));
         }
         else{
-            compound.setUniqueId("TargetItem", this.targetItemId);
+            this.targetItem.writeToNBT(compound);
             compound.setInteger("AmountToPickUp", this.amountToPickUp);
         }
     }
@@ -84,14 +74,12 @@ public class EntityPickupSpark extends EntityPickupSparkBase{
     protected void readEntityFromNBT(NBTTagCompound compound){
         super.readEntityFromNBT(compound);
 
-        this.itemWaitingCooldown = compound.getInteger("Cooldown");
-
         if(compound.hasKey("CarryingItem")){
             NBTTagCompound tag = compound.getCompoundTag("CarryingItem");
             this.setCarryingStack(ItemStack.func_77949_a(tag));
         }
         else{
-            this.targetItemId = compound.getUniqueId("TargetItem");
+            this.targetItem.readFromNBT(compound);
             this.amountToPickUp = compound.getInteger("AmountToPickUp");
         }
     }
@@ -107,7 +95,7 @@ public class EntityPickupSpark extends EntityPickupSparkBase{
 
     @Override
     protected void onGoalReached(){
-        EntityItem target = this.getTargetItem();
+        EntityItem target = this.targetItem.get(this.world);
         if(target != null && !this.isDead){
             ItemStack stack = target.getEntityItem();
             if(stack != null){
@@ -128,14 +116,13 @@ public class EntityPickupSpark extends EntityPickupSparkBase{
                 PacketHandler.sendToAllAround(this.world, this.posX, this.posY, this.posZ, packet);
             }
 
-            this.targetItem = null;
-            this.targetItemId = null;
+            this.targetItem.clear();
         }
     }
 
     @Override
     protected boolean canGoToGoal(){
-        return this.targetItem != null;
+        return this.targetItem.validate(this.world);
     }
 
     @Override
@@ -145,7 +132,8 @@ public class EntityPickupSpark extends EntityPickupSparkBase{
 
     @Override
     protected Vec3d getGoal(){
-        return new Vec3d(this.targetItem.posX, this.targetItem.posY+0.25, this.targetItem.posZ);
+        EntityItem item = this.targetItem.get(this.world);
+        return new Vec3d(item.posX, item.posY+0.25, item.posZ);
     }
 
     @Override
@@ -170,23 +158,13 @@ public class EntityPickupSpark extends EntityPickupSparkBase{
                 this.entityDropItem(stack, 0F);
             }
             else{
-                EntityItem target = this.getTargetItem();
-                if(target != null){
+                if(this.targetItem.isValid(this.world)){
+                    EntityItem target = this.targetItem.get(this.world);
                     NBTTagCompound data = target.getEntityData();
                     data.removeTag(ModUtil.MOD_ID+"Pickup");
                 }
             }
         }
-    }
-
-    public EntityItem getTargetItem(){
-        if(this.targetItem == null){
-            Entity entity = WorldUtil.getEntityByUUID(this.world, this.targetItemId);
-            if(entity != null && entity instanceof EntityItem){
-                this.targetItem = (EntityItem)entity;
-            }
-        }
-        return this.targetItem;
     }
 
     public ItemStack getCarryingStack(){

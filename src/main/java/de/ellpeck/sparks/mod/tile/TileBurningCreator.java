@@ -5,9 +5,8 @@ import de.ellpeck.sparks.api.cap.PotentialStorage;
 import de.ellpeck.sparks.api.cap.SparksCapabilities;
 import de.ellpeck.sparks.mod.Sparks;
 import de.ellpeck.sparks.mod.block.BlockBurningCreator;
-import de.ellpeck.sparks.mod.entity.spark.EntityPickupSpark;
-import de.ellpeck.sparks.mod.util.WorldUtil;
-import net.minecraft.entity.Entity;
+import de.ellpeck.sparks.mod.entity.spark.pickup.EntityItemPickupSpark;
+import de.ellpeck.sparks.mod.util.CachedEntity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -19,14 +18,13 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.common.capabilities.Capability;
 
 import java.util.List;
-import java.util.UUID;
 
 public class TileBurningCreator extends TileBase implements ITickable{
 
     private static final Predicate<EntityItem> PREDICATE = new Predicate<EntityItem>(){
         @Override
         public boolean apply(EntityItem input){
-            if(EntityPickupSpark.PICKUP_PREDICATE.apply(input)){
+            if(EntityItemPickupSpark.PICKUP_PREDICATE.apply(input)){
                 ItemStack stack = input.getEntityItem();
                 if(TileEntityFurnace.getItemBurnTime(stack) > 0){
                     return true;
@@ -36,7 +34,7 @@ public class TileBurningCreator extends TileBase implements ITickable{
         }
     };
 
-    private final PotentialStorage storage = new PotentialStorage(10000, 0, 50);
+    private final PotentialStorage storage = new PotentialStorage(10000, 0, 1000);
 
     private int maxBurnTime;
     private int currBurnTime;
@@ -44,8 +42,7 @@ public class TileBurningCreator extends TileBase implements ITickable{
     private int lastBurnTime;
     private int lastStorage;
 
-    private EntityPickupSpark spawnedPickupSpark;
-    private UUID spawnedPickupSparkId;
+    private final CachedEntity<EntityItemPickupSpark> cachedSpark = new CachedEntity<EntityItemPickupSpark>();
 
     @Override
     public void update(){
@@ -58,9 +55,8 @@ public class TileBurningCreator extends TileBase implements ITickable{
 
             if(this.currBurnTime <= 0 && !this.storage.isNearlyFull(200)){
                 if(this.world.getTotalWorldTime()%40 == 0){
-                    EntityPickupSpark spawnedSpark = this.getSpawnedPickupSpark();
 
-                    if(spawnedSpark == null || spawnedSpark.isDead){
+                    if(!this.cachedSpark.validate(this.world)){
                         double x = this.pos.getX()+0.5;
                         double y = this.pos.getY()+0.5;
                         double z = this.pos.getZ()+0.5;
@@ -92,13 +88,12 @@ public class TileBurningCreator extends TileBase implements ITickable{
                             }
 
                             Vec3d emitPos = new Vec3d(this.pos.getX()+emitX, this.pos.getY()+0.15, this.pos.getZ()+emitZ);
-                            EntityPickupSpark spark = new EntityPickupSpark(this.world, emitPos.xCoord, emitPos.yCoord, emitPos.zCoord, emitPos, item, 1);
+                            EntityItemPickupSpark spark = new EntityItemPickupSpark(this.world, emitPos.xCoord, emitPos.yCoord, emitPos.zCoord, emitPos, item, 1);
                             spark.setColor(0x33822C);
                             spark.setLastInteractor(this.pos);
                             this.world.spawnEntity(spark);
 
-                            this.spawnedPickupSpark = spark;
-                            this.spawnedPickupSparkId = spark.getUniqueID();
+                            this.cachedSpark.set(spark);
                         }
                     }
                 }
@@ -124,24 +119,13 @@ public class TileBurningCreator extends TileBase implements ITickable{
         }
     }
 
-    public EntityPickupSpark getSpawnedPickupSpark(){
-        if(this.spawnedPickupSpark == null){
-            Entity entity = WorldUtil.getEntityByUUID(this.world, this.spawnedPickupSparkId);
-            if(entity != null && entity instanceof EntityPickupSpark){
-                this.spawnedPickupSpark = (EntityPickupSpark)entity;
-            }
-        }
-        return this.spawnedPickupSpark;
-    }
-
     public boolean fuel(ItemStack stack){
         if(this.currBurnTime <= 0){
             int time = TileEntityFurnace.getItemBurnTime(stack);
             this.maxBurnTime = time;
             this.currBurnTime = time;
 
-            this.spawnedPickupSpark = null;
-            this.spawnedPickupSparkId = null;
+            this.cachedSpark.clear();
 
             this.sendToClient();
             this.markDirty();
@@ -160,10 +144,7 @@ public class TileBurningCreator extends TileBase implements ITickable{
         compound.setInteger("CurrBurn", this.currBurnTime);
         compound.setInteger("MaxBurn", this.maxBurnTime);
 
-        if(this.spawnedPickupSparkId != null){
-            compound.setUniqueId("PickupId", this.spawnedPickupSparkId);
-        }
-
+        this.cachedSpark.writeToNBT(compound);
         this.storage.writeToNBT(compound);
     }
 
@@ -174,10 +155,7 @@ public class TileBurningCreator extends TileBase implements ITickable{
         this.currBurnTime = compound.getInteger("CurrBurn");
         this.maxBurnTime = compound.getInteger("MaxBurn");
 
-        if(compound.hasUniqueId("PickupId")){
-            this.spawnedPickupSparkId = compound.getUniqueId("PickupId");
-        }
-
+        this.cachedSpark.readFromNBT(compound);
         this.storage.readFromNBT(compound);
     }
 

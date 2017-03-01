@@ -1,0 +1,22 @@
+{
+  "forge_marker": 1,
+  "defaults": {
+    "model": "sparks:potential_spark_initiator",
+    "textures": {
+      "0": "sparks:blocks/potential_spark_initiator",
+      "1": "sparks:blocks/mirror",
+      "particle": "#0"
+    },
+    "transform": "forge:default-block"
+  },
+  "variants": {
+    "normal": [{}],
+    "inventory": [{}],
+    "facing": {
+      "north": {},
+      "east": { "y": 90 },
+      "south": { "y": 180 },
+      "west": { "y": 270 }
+    }
+  }
+}
