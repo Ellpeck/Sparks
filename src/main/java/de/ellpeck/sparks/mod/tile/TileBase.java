@@ -1,13 +1,17 @@
 package de.ellpeck.sparks.mod.tile;
 
+import de.ellpeck.sparks.api.cap.IPotentialHandler;
+import de.ellpeck.sparks.api.cap.SparksCapabilities;
 import de.ellpeck.sparks.mod.packet.PacketHandler;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraftforge.common.capabilities.Capability;
 
 public class TileBase extends TileEntity{
 
@@ -56,5 +60,28 @@ public class TileBase extends TileEntity{
 
     public void sendToClient(){
         PacketHandler.dispatchVanilla(this);
+    }
+
+    protected IPotentialHandler getPotentialHandler(){
+        return null;
+    }
+
+    @Override
+    public boolean hasCapability(Capability<?> capability, EnumFacing facing){
+        if(capability == SparksCapabilities.capabilityPotential){
+            return this.getPotentialHandler() != null;
+        }
+        return super.hasCapability(capability, facing);
+    }
+
+    @Override
+    public <T> T getCapability(Capability<T> capability, EnumFacing facing){
+        if(capability == SparksCapabilities.capabilityPotential){
+            IPotentialHandler handler = this.getPotentialHandler();
+            if(handler != null){
+                return (T)handler;
+            }
+        }
+        return super.getCapability(capability, facing);
     }
 }

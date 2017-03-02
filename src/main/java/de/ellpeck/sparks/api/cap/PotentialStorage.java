@@ -36,6 +36,16 @@ public class PotentialStorage implements IPotentialHandler{
         return this.extractInternal(Math.min(this.maxExtract, amount), simulate);
     }
 
+    @Override
+    public int getMaxReceive(){
+        return this.maxReceive;
+    }
+
+    @Override
+    public int getMaxExtract(){
+        return this.maxExtract;
+    }
+
     public boolean isNearlyFull(int play){
         int space = this.maxAmount-this.amount;
         return space <= play;

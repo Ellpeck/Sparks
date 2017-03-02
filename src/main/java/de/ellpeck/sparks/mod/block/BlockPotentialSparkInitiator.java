@@ -1,12 +1,14 @@
 package de.ellpeck.sparks.mod.block;
 
-import de.ellpeck.sparks.api.cap.IPotentialHandler;
 import de.ellpeck.sparks.api.cap.SparksCapabilities;
 import de.ellpeck.sparks.api.iface.ISpark;
 import de.ellpeck.sparks.api.iface.ISparkInteractor;
+import de.ellpeck.sparks.api.iface.tool.IMultitoolInteract;
+import de.ellpeck.sparks.api.iface.tool.IMultitoolVisualize;
+import de.ellpeck.sparks.mod.Sparks;
 import de.ellpeck.sparks.mod.entity.spark.EntityPotentialSpark;
 import de.ellpeck.sparks.mod.entity.spark.pickup.EntityPotentialPickupSpark;
-import de.ellpeck.sparks.mod.item.ItemStaff;
+import de.ellpeck.sparks.mod.item.ItemMultitool;
 import de.ellpeck.sparks.mod.tile.TilePotentialSparkInitiator;
 import de.ellpeck.sparks.mod.util.CachedEntity;
 import net.minecraft.block.BlockHorizontal;
@@ -22,12 +24,9 @@ import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
 
-//TODO Add interaction to connect spark handlers to the initiator
-//TODO Fix spawn/arrival positions in initiator
-public class BlockPotentialSparkInitiator extends BlockContainerBase implements ISparkInteractor{
+public class BlockPotentialSparkInitiator extends BlockContainerBase implements ISparkInteractor, IMultitoolInteract, IMultitoolVisualize{
 
     public static final PropertyDirection FACING = BlockHorizontal.FACING;
 
@@ -64,7 +63,7 @@ public class BlockPotentialSparkInitiator extends BlockContainerBase implements 
                 if(amount > 0){
                     TileEntity tile = world.getTileEntity(pos);
                     if(tile instanceof TilePotentialSparkInitiator){
-                        ((TilePotentialSparkInitiator)tile).accumulatedPotential += pickup.getPotential();
+                        ((TilePotentialSparkInitiator)tile).storage.receiveInternal(pickup.getPotential(), false);
 
                         pickup.setPotential(0);
                         pickup.setKilled();
@@ -72,7 +71,7 @@ public class BlockPotentialSparkInitiator extends BlockContainerBase implements 
                         return EnumActionResult.SUCCESS;
                     }
                 }
-                else if(pickup.ticksExisted <= 20){
+                else if(pickup.ticksExisted <= 5){
                     return EnumActionResult.PASS;
                 }
             }
@@ -84,46 +83,54 @@ public class BlockPotentialSparkInitiator extends BlockContainerBase implements 
     }
 
     @Override
-    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, ItemStack stack, EnumFacing facing, float hitX, float hitY, float hitZ){
-        if(stack != null && stack.getItem() instanceof ItemStaff){
-            BlockPos storedPos = ItemStaff.getStoredPos(stack);
-            if(storedPos != null){
-                TileEntity storedTile = world.getTileEntity(storedPos);
-                if(storedTile != null){
-                    if(!world.isRemote){
-                        if(storedTile.hasCapability(SparksCapabilities.capabilityPotential, null)){
-                            TileEntity tile = world.getTileEntity(pos);
-                            if(tile instanceof TilePotentialSparkInitiator){
-                                ((TilePotentialSparkInitiator)tile).connectedHandlers.put(storedPos, new CachedEntity<EntityPotentialPickupSpark>());
-                                tile.markDirty();
-
-                                ItemStaff.setStoredPos(stack, null);
-                            }
-                        }
-                    }
-                    return true;
-                }
-            }
-        }
-        else{
-            if(!world.isRemote){
-                TileEntity tile = world.getTileEntity(pos);
-                if(tile instanceof TilePotentialSparkInitiator){
-                    player.sendMessage(new TextComponentString("Stored: "+((TilePotentialSparkInitiator)tile).accumulatedPotential));
-                }
-            }
-            return true;
-        }
-        return false;
-    }
-
-    @Override
     public boolean isFullCube(IBlockState state){
         return false;
     }
 
     @Override
     public boolean isOpaqueCube(IBlockState state){
+        return false;
+    }
+
+    @Override
+    public boolean interact(World world, BlockPos pos, EntityPlayer player, EnumHand hand){
+        ItemStack stack = player.getHeldItem(hand);
+        BlockPos storedPos = ItemMultitool.getStoredPos(stack);
+        if(storedPos != null){
+            TileEntity storedTile = world.getTileEntity(storedPos);
+            if(storedTile != null){
+                if(!world.isRemote){
+                    if(storedTile.hasCapability(SparksCapabilities.capabilityPotential, null)){
+                        TileEntity tile = world.getTileEntity(pos);
+                        if(tile instanceof TilePotentialSparkInitiator){
+                            TilePotentialSparkInitiator initiator = (TilePotentialSparkInitiator)tile;
+                            initiator.connectedHandlers.put(storedPos, new CachedEntity<EntityPotentialPickupSpark>());
+                            initiator.markDirty();
+                            initiator.sendToClient();
+
+                            ItemMultitool.setStoredPos(stack, null);
+                        }
+                    }
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean visualize(World world, BlockPos pos, EntityPlayer player, EnumHand hand){
+        if(world.isRemote){
+            TileEntity tile = world.getTileEntity(pos);
+            if(tile instanceof TilePotentialSparkInitiator){
+                for(BlockPos aPos : ((TilePotentialSparkInitiator)tile).connectedHandlers.keySet()){
+                    Sparks.proxy.spawnMagicParticle(world, aPos.getX()+0.5, aPos.getY()+1.25, aPos.getZ()+0.5, 0, 0, 0, 0x8E8E00, 2F, 100, 0F, false);
+                }
+                Sparks.proxy.spawnMagicParticle(world, pos.getX()+0.5, pos.getY()+1.25, pos.getZ()+0.5, 0, 0, 0, 0x8E8E00, 2F, 100, 0F, false);
+
+                return true;
+            }
+        }
         return false;
     }
 }

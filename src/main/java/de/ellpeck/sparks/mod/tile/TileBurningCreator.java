@@ -1,6 +1,7 @@
 package de.ellpeck.sparks.mod.tile;
 
 import com.google.common.base.Predicate;
+import de.ellpeck.sparks.api.cap.IPotentialHandler;
 import de.ellpeck.sparks.api.cap.PotentialStorage;
 import de.ellpeck.sparks.api.cap.SparksCapabilities;
 import de.ellpeck.sparks.mod.Sparks;
@@ -15,7 +16,6 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.Vec3d;
-import net.minecraftforge.common.capabilities.Capability;
 
 import java.util.List;
 
@@ -94,6 +94,7 @@ public class TileBurningCreator extends TileBase implements ITickable{
                             this.world.spawnEntity(spark);
 
                             this.cachedSpark.set(spark);
+                            this.markDirty();
                         }
                     }
                 }
@@ -160,17 +161,7 @@ public class TileBurningCreator extends TileBase implements ITickable{
     }
 
     @Override
-    public boolean hasCapability(Capability<?> capability, EnumFacing facing){
-        return capability == SparksCapabilities.capabilityPotential;
-    }
-
-    @Override
-    public <T> T getCapability(Capability<T> capability, EnumFacing facing){
-        if(capability == SparksCapabilities.capabilityPotential){
-            return (T)this.storage;
-        }
-        else{
-            return super.getCapability(capability, facing);
-        }
+    protected IPotentialHandler getPotentialHandler(){
+        return this.storage;
     }
 }

@@ -12,15 +12,12 @@ import net.minecraft.block.properties.PropertyDirection;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
@@ -63,18 +60,6 @@ public class BlockBurningCreator extends BlockContainerBase implements ISparkInt
             }
         }
         return EnumActionResult.FAIL;
-    }
-
-    @Override
-    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, ItemStack stack, EnumFacing facing, float hitX, float hitY, float hitZ){
-        if(!world.isRemote){
-            TileEntity tile = world.getTileEntity(pos);
-            IPotentialHandler cap = tile.getCapability(SparksCapabilities.capabilityPotential, null);
-            if(cap != null){
-                player.sendMessage(new TextComponentString("Stored: "+cap.getPotential()+"/"+cap.getMaxPotential()));
-            }
-        }
-        return true;
     }
 
     @Override

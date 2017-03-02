@@ -33,7 +33,7 @@ public abstract class EntityPickupSparkBase extends EntitySparkBase{
                     this.onGoalReached();
                 }
                 else{
-                    Vec3d motion = dist.normalize().scale(0.05);
+                    Vec3d motion = dist.normalize().scale(0.06);
                     this.motionX = motion.xCoord;
                     this.motionY = motion.yCoord;
                     this.motionZ = motion.zCoord;
@@ -47,7 +47,7 @@ public abstract class EntityPickupSparkBase extends EntitySparkBase{
                     this.onHomeReached();
                 }
                 else{
-                    Vec3d motion = dist.normalize().scale(0.05);
+                    Vec3d motion = dist.normalize().scale(0.06);
                     this.motionX = motion.xCoord;
                     this.motionY = motion.yCoord;
                     this.motionZ = motion.zCoord;

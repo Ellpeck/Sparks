@@ -4,6 +4,8 @@ import de.ellpeck.sparks.api.cap.IPotentialHandler;
 import de.ellpeck.sparks.api.cap.SparksCapabilities;
 import de.ellpeck.sparks.mod.Sparks;
 import de.ellpeck.sparks.mod.entity.spark.base.EntityPickupSparkBase;
+import de.ellpeck.sparks.mod.packet.PacketHandler;
+import de.ellpeck.sparks.mod.packet.PacketParticleExplosion;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
@@ -22,17 +24,20 @@ public class EntityPotentialPickupSpark extends EntityPickupSparkBase{
 
     private static final DataParameter<Integer> POTENTIAL_AMOUNT = EntityDataManager.createKey(EntityPotentialPickupSpark.class, DataSerializers.VARINT);
 
-    public EntityPotentialPickupSpark(World world){
-        super(world);
-    }
+    private int pickupAmount;
 
     private boolean pickedUpPotential;
     private BlockPos targetPos;
 
-    public EntityPotentialPickupSpark(World world, double x, double y, double z, Vec3d homePos, BlockPos targetPos){
+    public EntityPotentialPickupSpark(World world){
+        super(world);
+    }
+    public EntityPotentialPickupSpark(World world, double x, double y, double z, Vec3d homePos, BlockPos targetPos, int pickupAmount){
         super(world, x, y, z, homePos);
-
+        this.pickupAmount = pickupAmount;
         this.targetPos = targetPos;
+
+        this.setColor(0x404040);
     }
 
     @Override
@@ -47,7 +52,7 @@ public class EntityPotentialPickupSpark extends EntityPickupSparkBase{
         super.onUpdate();
 
         if(this.world.isRemote){
-            Sparks.proxy.spawnMagicParticle(this.world, (float)(this.prevPosX+(this.posX-this.prevPosX)*5F), (float)(this.prevPosY+(this.posY-this.prevPosY)*5F), (float)(this.prevPosZ+(this.posZ-this.prevPosZ)*5F), 0.0125F*(this.rand.nextFloat()-0.5F), 0.0125F*(this.rand.nextFloat()-0.5F), 0.0125F*(this.rand.nextFloat()-0.5F), this.getColor(), 2F, 30, 0F, false);
+            Sparks.proxy.spawnMagicParticle(this.world, (float)(this.prevPosX+(this.posX-this.prevPosX)*5F), (float)(this.prevPosY+(this.posY-this.prevPosY)*5F), (float)(this.prevPosZ+(this.posZ-this.prevPosZ)*5F), 0.0125F*(this.rand.nextFloat()-0.5F), 0.0125F*(this.rand.nextFloat()-0.5F), 0.0125F*(this.rand.nextFloat()-0.5F), this.getColor(), 1.5F, 30, 0F, false);
         }
     }
 
@@ -55,6 +60,7 @@ public class EntityPotentialPickupSpark extends EntityPickupSparkBase{
     protected void writeEntityToNBT(NBTTagCompound compound){
         super.writeEntityToNBT(compound);
 
+        compound.setInteger("PickupAmount", this.pickupAmount);
         compound.setBoolean("PickedUpPotential", this.pickedUpPotential);
         compound.setLong("TargetPos", this.targetPos.toLong());
         compound.setInteger("Potential", this.getPotential());
@@ -64,6 +70,7 @@ public class EntityPotentialPickupSpark extends EntityPickupSparkBase{
     protected void readEntityFromNBT(NBTTagCompound compound){
         super.readEntityFromNBT(compound);
 
+        this.pickupAmount = compound.getInteger("PickupAmount");
         this.pickedUpPotential = compound.getBoolean("PickedUpPotential");
         this.targetPos = BlockPos.fromLong(compound.getLong("TargetPos"));
         this.setPotential(compound.getInteger("Potential"));
@@ -81,7 +88,7 @@ public class EntityPotentialPickupSpark extends EntityPickupSparkBase{
 
     @Override
     protected Vec3d getGoal(){
-        return new Vec3d(this.targetPos.getX()+0.5, this.targetPos.getY()+0.5, this.targetPos.getZ()+0.5);
+        return new Vec3d(this.targetPos.getX()+0.5, this.targetPos.getY()+1.05, this.targetPos.getZ()+0.5);
     }
 
     @Override
@@ -90,9 +97,14 @@ public class EntityPotentialPickupSpark extends EntityPickupSparkBase{
         if(tile != null && tile.hasCapability(SparksCapabilities.capabilityPotential, null)){
             IPotentialHandler cap = tile.getCapability(SparksCapabilities.capabilityPotential, null);
             if(cap != null){
-                this.setPotential(cap.extractPotential(1000, false));
+                this.setPotential(cap.extractPotential(this.pickupAmount, false));
 
                 this.pickedUpPotential = true;
+                this.setColor(0x97B4FF);
+
+                PacketParticleExplosion packet = new PacketParticleExplosion(this.posX, this.posY, this.posZ, this.getColor(), 15, 0.01, 2F, false);
+                PacketHandler.sendToAllAround(this.world, this.posX, this.posY, this.posZ, packet);
+
                 return;
             }
         }

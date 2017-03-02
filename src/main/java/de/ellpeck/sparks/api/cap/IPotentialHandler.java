@@ -9,4 +9,8 @@ public interface IPotentialHandler{
     int receivePotential(int amount, boolean simulate);
 
     int extractPotential(int amount, boolean simulate);
+
+    int getMaxReceive();
+
+    int getMaxExtract();
 }
