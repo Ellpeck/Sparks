@@ -32,7 +32,7 @@ public class BlockSplitter extends BlockBase implements ISparkInteractor{
     }
 
     @Override
-    public EnumActionResult interact(World world, BlockPos pos, IBlockState state, ISpark spark){
+    public EnumActionResult interactWithSpark(World world, BlockPos pos, IBlockState state, ISpark spark){
         if(spark instanceof ITravellingSpark){
             ITravellingSpark travelling = (ITravellingSpark)spark;
 

@@ -47,7 +47,7 @@ public abstract class EntitySparkBase extends Entity implements ISpark{
                 if(block instanceof ISparkInteractor){
                     ISparkInteractor interactor = (ISparkInteractor)block;
 
-                    EnumActionResult result = interactor.interact(this.world, pos, state, this);
+                    EnumActionResult result = interactor.interactWithSpark(this.world, pos, state, this);
                     if(result == EnumActionResult.SUCCESS || result == EnumActionResult.PASS){
                         shouldCollide = false;
                     }

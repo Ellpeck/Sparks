@@ -7,6 +7,6 @@ import net.minecraft.world.World;
 
 public interface ISparkInteractor{
 
-    EnumActionResult interact(World world, BlockPos pos, IBlockState state, ISpark spark);
+    EnumActionResult interactWithSpark(World world, BlockPos pos, IBlockState state, ISpark spark);
 
 }

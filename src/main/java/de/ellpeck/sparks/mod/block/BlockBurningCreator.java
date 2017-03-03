@@ -38,7 +38,7 @@ public class BlockBurningCreator extends BlockContainerBase implements ISparkInt
     }
 
     @Override
-    public EnumActionResult interact(World world, BlockPos pos, IBlockState state, ISpark spark){
+    public EnumActionResult interactWithSpark(World world, BlockPos pos, IBlockState state, ISpark spark){
         if(spark instanceof EntityItemPickupSpark){
             EntityItemPickupSpark pickup = (EntityItemPickupSpark)spark;
             if(pos.equals(pickup.getLastInteractor())){

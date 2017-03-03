@@ -7,6 +7,6 @@ import net.minecraft.world.World;
 
 public interface IMultitoolInteract{
 
-    boolean interact(World world, BlockPos pos, EntityPlayer player, EnumHand hand);
+    boolean interactWithMultitool(World world, BlockPos pos, EntityPlayer player, EnumHand hand);
 
 }

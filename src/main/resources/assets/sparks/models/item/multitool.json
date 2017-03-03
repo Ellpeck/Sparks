@@ -1,0 +1,6 @@
+{
+  "parent": "sparks:item/handheld",
+  "textures": {
+    "layer0": "sparks:items/multitool"
+  }
+}

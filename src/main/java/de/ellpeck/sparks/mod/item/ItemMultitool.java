@@ -11,7 +11,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
@@ -25,6 +24,8 @@ public class ItemMultitool extends ItemBase{
 
     public ItemMultitool(){
         super("multitool");
+
+        this.setMaxStackSize(1);
     }
 
     public static BlockPos getStoredPos(ItemStack stack){
@@ -112,7 +113,7 @@ public class ItemMultitool extends ItemBase{
             Block block = state.getBlock();
 
             if(block instanceof IMultitoolInteract){
-                if(((IMultitoolInteract)block).interact(world, pos, player, hand)){
+                if(((IMultitoolInteract)block).interactWithMultitool(world, pos, player, hand)){
                     return EnumActionResult.SUCCESS;
                 }
             }

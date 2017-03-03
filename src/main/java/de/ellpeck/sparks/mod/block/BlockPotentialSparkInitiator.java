@@ -1,5 +1,6 @@
 package de.ellpeck.sparks.mod.block;
 
+import de.ellpeck.sparks.api.cap.IPotentialHandler;
 import de.ellpeck.sparks.api.cap.SparksCapabilities;
 import de.ellpeck.sparks.api.iface.ISpark;
 import de.ellpeck.sparks.api.iface.ISparkInteractor;
@@ -23,15 +24,25 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
 public class BlockPotentialSparkInitiator extends BlockContainerBase implements ISparkInteractor, IMultitoolInteract, IMultitoolVisualize{
 
     public static final PropertyDirection FACING = BlockHorizontal.FACING;
 
+    private static final float F = 1F/16F;
+    private static final AxisAlignedBB AABB = new AxisAlignedBB(F, F, F, 1-F, 1-F, 1-F);
+
     public BlockPotentialSparkInitiator(){
         super(Material.ROCK, "potential_spark_initiator", TilePotentialSparkInitiator.class, "potential_spark_initiator");
+    }
+
+    @Override
+    public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos){
+        return AABB;
     }
 
     @Override
@@ -55,7 +66,7 @@ public class BlockPotentialSparkInitiator extends BlockContainerBase implements 
     }
 
     @Override
-    public EnumActionResult interact(World world, BlockPos pos, IBlockState state, ISpark spark){
+    public EnumActionResult interactWithSpark(World world, BlockPos pos, IBlockState state, ISpark spark){
         if(spark instanceof EntityPotentialPickupSpark){
             EntityPotentialPickupSpark pickup = (EntityPotentialPickupSpark)spark;
             if(pos.equals(pickup.getLastInteractor())){
@@ -93,26 +104,35 @@ public class BlockPotentialSparkInitiator extends BlockContainerBase implements 
     }
 
     @Override
-    public boolean interact(World world, BlockPos pos, EntityPlayer player, EnumHand hand){
+    public boolean interactWithMultitool(World world, BlockPos pos, EntityPlayer player, EnumHand hand){
         ItemStack stack = player.getHeldItem(hand);
         BlockPos storedPos = ItemMultitool.getStoredPos(stack);
-        if(storedPos != null){
+        if(storedPos != null && storedPos.distanceSq(pos) <= 5*5){
             TileEntity storedTile = world.getTileEntity(storedPos);
             if(storedTile != null){
-                if(!world.isRemote){
-                    if(storedTile.hasCapability(SparksCapabilities.capabilityPotential, null)){
-                        TileEntity tile = world.getTileEntity(pos);
-                        if(tile instanceof TilePotentialSparkInitiator){
-                            TilePotentialSparkInitiator initiator = (TilePotentialSparkInitiator)tile;
-                            initiator.connectedHandlers.put(storedPos, new CachedEntity<EntityPotentialPickupSpark>());
-                            initiator.markDirty();
-                            initiator.sendToClient();
+                TileEntity tile = world.getTileEntity(pos);
+                if(tile instanceof TilePotentialSparkInitiator){
+                    TilePotentialSparkInitiator initiator = (TilePotentialSparkInitiator)tile;
+                    if(initiator.connectedHandlers.size() < 5){
 
-                            ItemMultitool.setStoredPos(stack, null);
+                        if(!world.isRemote){
+                            if(storedTile.hasCapability(SparksCapabilities.capabilityPotential, null)){
+                                IPotentialHandler cap = storedTile.getCapability(SparksCapabilities.capabilityPotential, null);
+                                if(cap != null && cap.getMaxExtract() > 0){
+
+                                    initiator.connectedHandlers.put(storedPos, new CachedEntity<EntityPotentialPickupSpark>());
+                                    initiator.markDirty();
+                                    initiator.sendToClient();
+
+                                    ItemMultitool.setStoredPos(stack, null);
+                                }
+                            }
                         }
+
+                        return true;
                     }
+
                 }
-                return true;
             }
         }
         return false;
